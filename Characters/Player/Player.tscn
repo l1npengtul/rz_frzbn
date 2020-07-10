@@ -1,11 +1,31 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://icon.png" type="Texture" id=1]
+[ext_resource path="res://Characters/Player/Player.cs" type="Script" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 32, 32 )
 
+[sub_resource type="Animation" id=2]
+resource_name = "BOARD"
+
+[sub_resource type="Animation" id=3]
+resource_name = "IDLE"
+
+[sub_resource type="Animation" id=4]
+resource_name = "IDLE_LONG"
+
+[sub_resource type="Animation" id=5]
+resource_name = "ROLL"
+
+[sub_resource type="Animation" id=6]
+resource_name = "RUN"
+
+[sub_resource type="Animation" id=7]
+resource_name = "WALK"
+
 [node name="Player" type="KinematicBody2D"]
+script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]
 texture = ExtResource( 1 )
@@ -14,11 +34,19 @@ texture = ExtResource( 1 )
 shape = SubResource( 1 )
 
 [node name="Camera" type="Camera2D" parent="."]
+current = true
 
 [node name="Tween" type="Tween" parent="."]
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+anims/BOARD = SubResource( 2 )
+anims/IDLE = SubResource( 3 )
+anims/IDLE_LONG = SubResource( 4 )
+anims/ROLL = SubResource( 5 )
+anims/RUN = SubResource( 6 )
+anims/WALK = SubResource( 7 )
 
-[node name="Node2D" type="Node2D" parent="."]
+[node name="Timers" type="Node2D" parent="."]
 
-[node name="Timer" type="Timer" parent="Node2D"]
+[node name="IdleLongTimer" type="Timer" parent="Timers"]
+[connection signal="timeout" from="Timers/IdleLongTimer" to="." method="_onIdleLongTimerTimeout"]
