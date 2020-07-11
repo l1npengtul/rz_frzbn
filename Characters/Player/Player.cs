@@ -165,12 +165,20 @@ public class Player : KinematicBody2D {
 			changeState(STATES.BOARD);
 		}
 
+		if(inputEvent.IsActionPressed("ui_aimmode")){
+			if(aimMode){
+				aimMode = false;
+			}
+			else{
+				aimMode = true;
+			}
+		}
+		
 		
 	}
 
-	public override void _PhysicsProcess(float delta){
-		getMovementInput();
-		movementVector = MoveAndSlide(movementVector);
+	public override void _Process(float delta){
+		// Se No! Demo sonan da jame 
 	}
 
 	// Signals
