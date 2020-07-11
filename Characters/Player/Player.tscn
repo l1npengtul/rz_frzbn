@@ -25,6 +25,7 @@ resource_name = "RUN"
 resource_name = "WALK"
 
 [node name="Player" type="KinematicBody2D"]
+modulate = Color( 0.776471, 0.345098, 0.996078, 1 )
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]

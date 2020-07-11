@@ -9,6 +9,8 @@ public class Player : KinematicBody2D {
 	private Vector2 movementVector = new Vector2(0,0);
 	private const int speed = 300;
 	private const int rollSpeed = 500;
+	
+	// Player Inventory related Variables
 
 	// Boolean to see if AimMode is enabled. In aim mode, the character will follow the crosshair
 	private bool aimMode = false;
@@ -24,6 +26,9 @@ public class Player : KinematicBody2D {
 	private Timer idleLongTimer = (Timer)GetNode("Node2D/IdleLongTimer");
 	*/
 
+	// Non FSM State Variables
+	private bool onSlope = false;
+
 	//FSM
 	private enum STATES {
 		IDLE,
@@ -31,7 +36,6 @@ public class Player : KinematicBody2D {
 		RUN,
 		WALK,
 		JUMP,
-		// TODO: Make auto jump like in Zelda
 		ROLL,
 		BOARD,
 		STAGGER,
@@ -74,11 +78,9 @@ public class Player : KinematicBody2D {
 	}
 
 	
-	private void changeState(STATES toState)
-	{
+	private void changeState(STATES toState){
 		// Check for any current states
-		switch (currentState)
-		{
+		switch (currentState){
 			case STATES.DEAD:
 				QueueFree();
 				break;
@@ -94,8 +96,7 @@ public class Player : KinematicBody2D {
 
 		var aniPlayer = (AnimationPlayer)GetNode("AnimationPlayer");
 		// Get the new state
-		switch (toState)
-		{
+		switch (toState){
 			case STATES.IDLE:
 				aniPlayer.Play("IDLE");
 				break;
@@ -134,7 +135,8 @@ public class Player : KinematicBody2D {
 				break;
 			case STATES.ATTACK_MAGE:
 				// So here is the thing:
-				// Emilia's sprite is broken up into many parts, allowing is to "blend" animations
+				// Emilia's sprite is broken up into many parts, allowing us to "blend" animations
+				// Emilia will play the attack mage
 				aniPlayer.Play("IDLE");
 				break;
 			// Skipping all other states until movement and roll works properly. 
@@ -147,21 +149,26 @@ public class Player : KinematicBody2D {
 	}
 	
 
-	public override void _Input(InputEvent inputEvent)
-	{
+	public override void _Input(InputEvent inputEvent){
 		// See if the player pressed jump and is not in banned states
-		if(inputEvent.IsActionPressed("ui_jump") && !(new [] {STATES.ATTACK_MELEE, STATES.ATTACK_MAGE, STATES.ATTACK_RANGED, STATES.BOARD}.Contains(currentState))){
+		if(inputEvent.IsActionPressed("ui_jump") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN, STATES.BOARD}.Contains(currentState))){
 			changeState(STATES.JUMP);
 		}
 		// Elifs because we want these to be mutually exclusive
-		else if (true)
-		{
-			
+		else if (inputEvent.IsActionPressed("ui_shift") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN}.Contains(currentState))){
+			changeState(STATES.RUN);
 		}
+		else if (inputEvent.IsActionPressed("ui_roll") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN}.Contains(currentState))){
+			changeState(STATES.ROLL);
+		}
+		else if (inputEvent.IsActionPressed("ui_board") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN}.Contains(currentState)) && onSlope){
+			changeState(STATES.BOARD);
+		}
+
+		
 	}
 
-	public override void _PhysicsProcess(float delta)
-	{
+	public override void _PhysicsProcess(float delta){
 		getMovementInput();
 		movementVector = MoveAndSlide(movementVector);
 	}
