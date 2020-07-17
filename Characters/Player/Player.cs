@@ -1,5 +1,8 @@
 using Godot;
+using System;
 using System.Linq;
+
+// Hours with dadadada tenshi on loop: 7
 
 public class Player : KinematicBody2D {
 	private int healthPoints = 10;
@@ -7,8 +10,20 @@ public class Player : KinematicBody2D {
 
 	// All variables related to movement
 	private Vector2 movementVector = new Vector2(0,0);
-	private const int speed = 300;
-	private const int rollSpeed = 500;
+	private Vector2 inputVector = new Vector2(0.0F, 0.0F);
+
+	private const float frictionMultiplier = 4000.0F;
+	private const float accelerationMultiplier = 4000.0F;
+	private const float rollDuration = 0.5F;
+	private float walkSpeedMultiplier = 1.0F;
+	private float runSpeedMultiplier = 1.6F;
+	private const int baseSpeed = 600;
+	private const int maxSpeed = 700;
+	private const int rollSpeed = 1500;
+	private int currentSpeed = 600;
+
+	private bool onBoard = false;
+	
 	
 	// Player Inventory related Variables
 
@@ -16,25 +31,22 @@ public class Player : KinematicBody2D {
 	private bool aimMode = false;
 
 	// Nodes
-	/*
-	private AnimationPlayer animationPlayer = (AnimationPlayer)GetNode("AnimationPlayer");
-	private Tween tween = (Tween)GetNode("Tween");
-	private Camera2D camera = (Camera2D)GetNode("Camera");
-	private Timer attackMageTimer = (Timer)GetNode("Node2D/AttackMageTimer");
-	private Timer attackMeleeTimer = (Timer)GetNode("Node2D/AttackMeleeTimer");
-	private Timer attackRangedTimer = (Timer)GetNode("Node2D/AttackRangedTimer");
-	private Timer idleLongTimer = (Timer)GetNode("Node2D/IdleLongTimer");
-	*/
+	
+	private AnimationPlayer animationPlayer;
+	private Tween tween;
+	private Camera2D camera;
+	private Timer idleLongTimer;
+	private RayCast2D interactCast;
+	
 
 	// Non FSM State Variables
 	private bool onSlope = false;
 
 	//FSM
-	private enum STATES {
+	public enum STATES {
 		IDLE,
 		IDLE_LONG,
-		RUN,
-		WALK,
+		MOVE,
 		JUMP,
 		ROLL,
 		BOARD,
@@ -49,34 +61,97 @@ public class Player : KinematicBody2D {
 	}
 	private STATES currentState = STATES.IDLE;
 
+	// Angle FSM
+	public enum ANGLES {
+		NORTH,
+		NORTHEAST,
+		EAST,
+		SOUTHEAST,
+		SOUTH,
+		SOUTHWEST,
+		WEST,
+		NORTHWEST,
+	}
+	ANGLES currentAngle = ANGLES.NORTH;
 	public override void _Ready(){
-		GetNode("Timers/IdleLongTimer");
+		animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+		camera = GetNode<Camera2D>("Camera");
+		idleLongTimer = GetNode<Timer>("Timers/IdleLongTimer");
+		interactCast = GetNode<RayCast2D>("InteractCast");
+		tween = GetNode<Tween>("Tween");
 	}
 
-	private void getMovementInput(){ 
-		movementVector = new Vector2();
+	private void getMovementInput(float delta){ 
+		currentSpeed = baseSpeed;
+		inputVector = Vector2.Zero;
 
 		// Check for movement. We want a the character to move in as many ways as possible
-		// 
+		
 		if(Input.IsActionPressed("ui_up")){
-			movementVector.y -= 1;
+			changeState(STATES.MOVE);
+			inputVector.y -= 1.0F;
 		}
 
 		if(Input.IsActionPressed("ui_down")){
-			movementVector.y -= -1;
+			changeState(STATES.MOVE);
+			inputVector.y -= -1.0F;
 		}
 
 		if(Input.IsActionPressed("ui_left")){
-			movementVector.x -= 1;
+			changeState(STATES.MOVE);
+			inputVector.x -= 1.0F;
 		}
 
 		if(Input.IsActionPressed("ui_right")){
-			movementVector.x -= -1;
+			changeState(STATES.MOVE);			
+			inputVector.x -= -1.0F;
+		}
+		inputVector = inputVector.Normalized();
+
+
+		
+
+		// TODO: implement more (roll, jump) so change to if/elif
+		switch (Input.IsActionPressed("ui_shift")){
+			case true: currentSpeed = (int) (currentSpeed * runSpeedMultiplier);
+					   break;
+			case false: currentSpeed = baseSpeed;
+					   break;
 		}
 
-		movementVector = movementVector.Normalized() * speed;
-	}
+		if (inputVector != Vector2.Zero){
+			movementVector = movementVector.MoveToward(inputVector.Normalized() * currentSpeed, accelerationMultiplier * delta);
+		}
+		else{
+			movementVector = movementVector.MoveToward(Vector2.Zero, frictionMultiplier * delta);
+		}
 
+
+		if(inputVector == Vector2.Zero){
+			changeState(STATES.IDLE);
+		}
+
+		if(!aimMode){
+			if(inputVector == Vector2.Zero){
+
+			}
+			else{
+				//GD.Print(movementVector);
+				rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F));
+			}
+		}
+		else{
+			Vector2 mousePos = GetGlobalMousePosition();
+			Vector2 globalPos = this.GlobalPosition;
+			rotatePlayer(Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(-90.0F));
+		}
+
+		
+
+		//GD.Print(movementVector);
+		movementVector = MoveAndSlide(movementVector);
+		
+	}
 	
 	private void changeState(STATES toState){
 		// Check for any current states
@@ -93,22 +168,17 @@ public class Player : KinematicBody2D {
 				break;
 			
 		}
-
-		var aniPlayer = (AnimationPlayer)GetNode("AnimationPlayer");
 		// Get the new state
 		switch (toState){
 			case STATES.IDLE:
-				aniPlayer.Play("IDLE");
+				//aniPlayer.Play("IDLE");
 				break;
 			case STATES.IDLE_LONG:
 				// TODO: Make More Idle Long Anims if possible
-				aniPlayer.Play("IDLE_LONG");
+				//aniPlayer.Play("IDLE_LONG");
 				break;
-			case STATES.RUN:
-				aniPlayer.Play("RUN");
-				break;
-			case STATES.WALK:
-				aniPlayer.Play("WALK");
+			case STATES.MOVE:
+				//aniPlayer.Play("RUN");
 				break;
 			/* TODO: Implement Jump 
 			case STATES.JUMP:
@@ -117,53 +187,87 @@ public class Player : KinematicBody2D {
 				*/
 			case STATES.ROLL:
 				SetPhysicsProcess(false);
-				aniPlayer.Play("ROLL");
+				//aniPlayer.Play("ROLL");
+				rollPlayer();
 				break;
 			case STATES.JUMP:
 				// TODO: Implement jump (Y movement UP, reduced air control by set margain)
-				aniPlayer.Play("IDLE");
-				break;
-			case STATES.BOARD:
-				// TODO Implement board
-				aniPlayer.Play("BOARD");
+				//aniPlayer.Play("IDLE");
 				break;
 			case STATES.STAGGER:
 				// TODO: Only when hit 
 				// Play knockback anim
 				// Give IFrames
-				aniPlayer.Play("IDLE");
+				//aniPlayer.Play("IDLE");
 				break;
 			case STATES.ATTACK_MAGE:
 				// So here is the thing:
 				// Emilia's sprite is broken up into many parts, allowing us to "blend" animations
 				// Emilia will play the attack mage
-				aniPlayer.Play("IDLE");
+				//aniPlayer.Play("IDLE");
 				break;
 			// Skipping all other states until movement and roll works properly. 
 			default:
-				aniPlayer.Play("IDLE");
+				//aniPlayer.Play("IDLE");
 				break;
-			
-
 		}
+
+		currentState = toState;
+		GD.Print(currentState);
 	}
-	
+
+	private void rollPlayer(){
+		GD.Print("aa");
+		Tween physicsTween = GetNode<Tween>("PhysicsTween");
+
+		float xDir = 0.0F;
+		float yDir = 0.0F;
+
+		if(Input.IsActionPressed("ui_up")){
+			yDir -= 1.0F;
+		}
+
+		if(Input.IsActionPressed("ui_down")){
+			yDir -= -1.0F;
+		}
+
+		if(Input.IsActionPressed("ui_left")){
+			xDir -= 1.0F;
+		}
+
+		if(Input.IsActionPressed("ui_right")){
+			xDir -= -1.0F;
+		}
+		
+		
+
+		Vector2 initialVector = new Vector2(xDir * rollSpeed,yDir * rollSpeed);
+
+		physicsTween.InterpolateMethod(this, "move_and_slide", initialVector, initialVector, rollDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
+		if (!physicsTween.IsActive()){
+			GD.Print("start");
+			physicsTween.Start();
+		}
+		MoveAndSlide(initialVector);
+		changeState(STATES.IDLE);
+		GD.Print(currentState);
+	}
 
 	public override void _Input(InputEvent inputEvent){
-		// See if the player pressed jump and is not in banned states
-		if(inputEvent.IsActionPressed("ui_jump") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN, STATES.BOARD}.Contains(currentState))){
+
+		if(inputEvent.IsActionPressed("ui_jump") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE, STATES.BOARD}.Contains(currentState))){
 			changeState(STATES.JUMP);
 		}
-		// Elifs because we want these to be mutually exclusive
-		else if (inputEvent.IsActionPressed("ui_shift") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN}.Contains(currentState))){
-			changeState(STATES.RUN);
-		}
-		else if (inputEvent.IsActionPressed("ui_roll") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN}.Contains(currentState))){
+		// Ive been trying for at least 3 days now to get rolling working. I give up, you win.
+		// HAHAHAAHAHAA FUCK YOU TWEENS I WIN INTO YOUR FUCKING TRASHCAN YOU GO LMAOOOOOOO I GOT ROLL WORKING YESYESYESYESYESYESYESYES
+		else if (Input.IsActionPressed("ui_roll") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState))){
 			changeState(STATES.ROLL);
 		}
-		else if (inputEvent.IsActionPressed("ui_board") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.WALK, STATES.RUN}.Contains(currentState)) && onSlope){
+		// Elifs because we want these to be mutually exclusive
+		else if (inputEvent.IsActionPressed("ui_board") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState)) && onSlope){
 			changeState(STATES.BOARD);
 		}
+		
 
 		if(inputEvent.IsActionPressed("ui_aimmode")){
 			if(aimMode){
@@ -173,12 +277,13 @@ public class Player : KinematicBody2D {
 				aimMode = true;
 			}
 		}
+
 		
 		
 	}
 
-	public override void _Process(float delta){
-		// Se No! Demo sonan da jame 
+	public override void _PhysicsProcess(float delta){
+		getMovementInput(delta);
 	}
 
 	// Signals
@@ -187,5 +292,75 @@ public class Player : KinematicBody2D {
 		// Reset self
 	}
 
+	public void _on_Tween_tween_completed(Godot.Object o, NodePath key){
+		//GD.Print("a");
+		currentSpeed = baseSpeed;
+		changeState(STATES.IDLE);
+	}
 
+	public void _on_PhysicsTween_tween_completed(Godot.Object o, NodePath key){
+		currentSpeed = baseSpeed;
+		changeState(STATES.IDLE);
+	}
+
+
+	public void rotatePlayer(float radians){
+		//GD.Print(radians);
+		float degrees = (float) System.Math.Round(Godot.Mathf.Rad2Deg(radians), 1);
+		//GD.Print(degrees);
+		ANGLES toAngle = ANGLES.NORTH;
+	    
+		// Godot has a dumb angle system, where North is at -180, south at 0, east at -90, and west at 90 or -270
+		// YandereDev approved!
+		if ((-292.5 <= degrees) && (degrees < -247.5)){
+			toAngle = ANGLES.WEST;
+		}
+		else if ((degrees < -202.5)){
+			toAngle = ANGLES.NORTHWEST;
+		}
+		else if((degrees < -157.5)){
+			toAngle = ANGLES.NORTH;
+		}
+		else if ( (degrees < -112.5)){
+			toAngle = ANGLES.NORTHEAST;
+		}
+		else if ( (degrees < -67.5)){
+			toAngle = ANGLES.EAST;
+		}
+		else if ( (degrees < -22.5)){
+			toAngle = ANGLES.SOUTHEAST;
+		}
+		else if ((degrees < 22.5)){
+			toAngle = ANGLES.SOUTH;
+		}
+		else if ( (degrees < 67.5)){
+			toAngle = ANGLES.SOUTHWEST;
+		}
+		// Note that 90 can also be -270, so we also have to check for that
+		else if ((degrees < 112.5)){
+			toAngle = ANGLES.WEST;
+		}
+		
+		// We want only the Interact Cast (Ray Cast2D) to rotate according to the true rotation
+		// Only for AimMode
+		if (aimMode){
+			interactCast.Rotation = radians;
+		}
+		else{
+			interactCast.RotationDegrees = ((float) toAngle) * 45.0F + 180.0F;
+		}
+		// TODO remove this if statement its a test
+		//GD.Print(toAngle);
+
+		currentAngle = toAngle;
+	}
+
+	public void playSpriteAnimation(string animation){
+		
+	}
+
+	public void _on_RollTimer_timeout(){
+		currentSpeed = baseSpeed;
+		changeState(STATES.IDLE);
+	}
 }
