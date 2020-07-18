@@ -1,10 +1,11 @@
 using Godot;
 using System;
 using System.Linq;
+using BaseCharacter;
 
 // Hours with dadadada tenshi on loop: 7
 
-public class Player : KinematicBody2D {
+public class Player : BaseCharacter {
 	private int healthPoints = 10;
 	private int manaPoints = 20;
 
