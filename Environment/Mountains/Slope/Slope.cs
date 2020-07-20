@@ -3,10 +3,6 @@ using System;
 
 public class Slope : Area2D
 {   
-
-    [Export]
-    private int slopeDirection = 0; // NOTE: only N, E, S, W supported
-
     private enum SLOPTYP {
         START, // Top of slope
         DEADZONE, // Bottom
@@ -15,11 +11,12 @@ public class Slope : Area2D
         LARGESLOPE, // Large
     }
     [Export]
-    private SLOPTYP slope = SLOPTYP.DEADZONE;
-
-    private float xSpeed = 1.0F;
-    private float ySpeed = 1.0F;
-    private Vector2 slopeSpeedMultiplier = new Vector2(1.0F,1.0F);
+    private float xSpeed = 0.0F;
+    [Export]
+    private float ySpeed = 0.0F;
+    [Export]
+    private int slopeDirection = 0;
+    //private Vector2 slopeSpeedMultiplier = new Vector2(1.0F,1.0F);
 
     public override void _Ready()
     {
@@ -27,14 +24,16 @@ public class Slope : Area2D
     }
 
     public void _on_Area2D_body_entered(Node body){
+        GD.Print("a");
         if (body.HasMethod("enterSlope")){
-            body.Call("enterSlope", slopeDirection, slope);
+            body.Call("enterSlope",xSpeed, ySpeed,slopeDirection);
         }
     }
 
     public void _on_Area2D_body_exited(Node body){
+        GD.Print("b");
         if (body.HasMethod("exitSlope")){
-            body.exitSlope();
+            body.Call("exitSlope");
         }
     }
 

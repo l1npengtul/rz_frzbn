@@ -1,79 +1,33 @@
 using Godot;
 using System;
 using System.Linq;
-using BaseCharacter;
 
-// Hours with dadadada tenshi on loop: 7
+// Hours with dadadada tenshi on loop: 10
 
-public class Player : BaseCharacter {
-	private int healthPoints = 10;
-	private int manaPoints = 20;
+public class Player : Character.BaseCharacter {
+	private new int healthPoints = 10;
+	private new int manaPoints = 20;
 
 	// All variables related to movement
-	private Vector2 movementVector = new Vector2(0,0);
 	private Vector2 inputVector = new Vector2(0.0F, 0.0F);
 
-	private const float frictionMultiplier = 4000.0F;
-	private const float accelerationMultiplier = 4000.0F;
-	private const float rollDuration = 0.5F;
-	private float walkSpeedMultiplier = 1.0F;
-	private float runSpeedMultiplier = 1.6F;
-	private const int baseSpeed = 600;
-	private const int maxSpeed = 700;
-	private const int rollSpeed = 1500;
-	private int currentSpeed = 600;
 
-	private bool onBoard = false;
-	
-	
 	// Player Inventory related Variables
 
 	// Boolean to see if AimMode is enabled. In aim mode, the character will follow the crosshair
-	private bool aimMode = false;
+	private new bool aimMode = false;
 
 	// Nodes
 	
-	private AnimationPlayer animationPlayer;
+	private new AnimationPlayer animationPlayer;
 	private Tween tween;
 	private Camera2D camera;
 	private Timer idleLongTimer;
-	private RayCast2D interactCast;
+	private new RayCast2D interactCast;
 	
 
 	// Non FSM State Variables
-	private bool onSlope = false;
-
-	//FSM
-	public enum STATES {
-		IDLE,
-		IDLE_LONG,
-		MOVE,
-		JUMP,
-		ROLL,
-		BOARD,
-		STAGGER,
-		ATTACK_MAGE,
-		ATTACK_RANGED,
-		ATTACK_MELEE,
-		//TALK,
-		//TALK_SHOP,
-		DYING,
-		DEAD,
-	}
-	private STATES currentState = STATES.IDLE;
-
 	// Angle FSM
-	public enum ANGLES {
-		NORTH,
-		NORTHEAST,
-		EAST,
-		SOUTHEAST,
-		SOUTH,
-		SOUTHWEST,
-		WEST,
-		NORTHWEST,
-	}
-	ANGLES currentAngle = ANGLES.NORTH;
 	public override void _Ready(){
 		animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 		camera = GetNode<Camera2D>("Camera");
@@ -83,6 +37,12 @@ public class Player : BaseCharacter {
 	}
 
 	private void getMovementInput(float delta){ 
+		// What you are about to see is `if` statement hell. Proceed at your own risk.
+		// This code is provided "as is", without any warrenty of any kind, implied or expressed, including but
+		// not limited to unleashing unspeakable lovecraftian mosters to roam your head, giving you YandereDev PTSD flashbacks, 
+		// horrors that shatter both your physical representation and psyche sending you to a empty void to drift forever,
+		// constantly hearing "Who is rem?" jokes, and being isekai'd into Re:Zero as Subaru.
+
 		currentSpeed = baseSpeed;
 		inputVector = Vector2.Zero;
 
@@ -108,9 +68,15 @@ public class Player : BaseCharacter {
 			inputVector.x -= -1.0F;
 		}
 		inputVector = inputVector.Normalized();
-
-
 		
+		// Ive been trying for at least 3 days now to get rolling working. I give up, you win.
+		// HAHAHAAHAHAA FUCK YOU TWEENS I WIN INTO YOUR FUCKING TRASHCAN YOU GO LMAOOOOOOO I GOT ROLL WORKING YESYESYESYESYESYESYESYES
+		if (Input.IsActionPressed("ui_roll") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState)) && !onSlope){
+			changeState(STATES.ROLL);
+			currentSpeed = 0;
+			movementVector = Vector2.Zero;
+			rollPlayer();
+		}
 
 		// TODO: implement more (roll, jump) so change to if/elif
 		switch (Input.IsActionPressed("ui_shift")){
@@ -121,13 +87,12 @@ public class Player : BaseCharacter {
 		}
 
 		if (inputVector != Vector2.Zero){
-			movementVector = movementVector.MoveToward(inputVector.Normalized() * currentSpeed, accelerationMultiplier * delta);
+			movementVector = movementVector.MoveToward(inputVector * currentSpeed, accelerationMultiplier * delta);
 		}
 		else{
 			movementVector = movementVector.MoveToward(Vector2.Zero, frictionMultiplier * delta);
 		}
-
-
+		
 		if(inputVector == Vector2.Zero){
 			changeState(STATES.IDLE);
 		}
@@ -138,84 +103,80 @@ public class Player : BaseCharacter {
 			}
 			else{
 				//GD.Print(movementVector);
-				rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F));
+				rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
 			}
 		}
 		else{
 			Vector2 mousePos = GetGlobalMousePosition();
 			Vector2 globalPos = this.GlobalPosition;
-			rotatePlayer(Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(-90.0F));
+			rotatePlayer(Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
 		}
-
-		
-
 		//GD.Print(movementVector);
 		movementVector = MoveAndSlide(movementVector);
+	}
+
+	private void getMovementOnSlope(float delta){
+		inputVector = Vector2.Zero;
+
+		// Check for movement. We want a the character to move in as many ways as possible
+		
+		if(Input.IsActionPressed("ui_up")){
+			changeState(STATES.MOVE);
+			inputVector.y -= 1.0F + ySlopeModifier;
+		}
+
+		if(Input.IsActionPressed("ui_down")){
+			changeState(STATES.MOVE);
+			inputVector.y -= -1.0F + ySlopeModifier;
+		}
+
+		if(Input.IsActionPressed("ui_left")){
+			changeState(STATES.MOVE);
+			inputVector.x -= 1.0F + xSlopeModifier;
+		}
+
+		if(Input.IsActionPressed("ui_right")){
+			changeState(STATES.MOVE);			
+			inputVector.x -= -1.0F + xSlopeModifier;
+		}
+
+		if (inputVector != Vector2.Zero){
+			movementVector = movementVector.MoveToward(inputVector * maxSpeed, accelerationMultiplier * delta);
+		}
+		else{
+			movementVector = movementVector.MoveToward(Vector2.Zero, frictionMultiplier * delta);
+		}
+
+		if(!aimMode){
+			if(inputVector == Vector2.Zero){
+
+			}
+			else{
+				//GD.Print(movementVector);
+				rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
+			}
+		}
+		else{
+			Vector2 mousePos = GetGlobalMousePosition();
+			Vector2 globalPos = this.GlobalPosition;
+			rotatePlayer(Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
+		}
+
+		MoveAndSlide(movementVector);
+
+
+
+		// Normalize puts vector on a unit circle, and as good as Normalize is its not desired behaviour here
+		//inputVector = inputVector.Normalized();
+
+
+	}
+
+	private void getMovementOnBoard(float delta){
 		
 	}
 	
-	private void changeState(STATES toState){
-		// Check for any current states
-		switch (currentState){
-			case STATES.DEAD:
-				QueueFree();
-				break;
-			// Note: This is done so that melee has to finish and you cant move while attacking melee.
-			case STATES.ATTACK_MELEE:
-				SetPhysicsProcess(true);
-				break;
-			case STATES.ROLL:
-				SetPhysicsProcess(true);
-				break;
-			
-		}
-		// Get the new state
-		switch (toState){
-			case STATES.IDLE:
-				//aniPlayer.Play("IDLE");
-				break;
-			case STATES.IDLE_LONG:
-				// TODO: Make More Idle Long Anims if possible
-				//aniPlayer.Play("IDLE_LONG");
-				break;
-			case STATES.MOVE:
-				//aniPlayer.Play("RUN");
-				break;
-			/* TODO: Implement Jump 
-			case STATES.JUMP:
-				aniPlayer.Play("RUN");
-				break;
-				*/
-			case STATES.ROLL:
-				SetPhysicsProcess(false);
-				//aniPlayer.Play("ROLL");
-				rollPlayer();
-				break;
-			case STATES.JUMP:
-				// TODO: Implement jump (Y movement UP, reduced air control by set margain)
-				//aniPlayer.Play("IDLE");
-				break;
-			case STATES.STAGGER:
-				// TODO: Only when hit 
-				// Play knockback anim
-				// Give IFrames
-				//aniPlayer.Play("IDLE");
-				break;
-			case STATES.ATTACK_MAGE:
-				// So here is the thing:
-				// Emilia's sprite is broken up into many parts, allowing us to "blend" animations
-				// Emilia will play the attack mage
-				//aniPlayer.Play("IDLE");
-				break;
-			// Skipping all other states until movement and roll works properly. 
-			default:
-				//aniPlayer.Play("IDLE");
-				break;
-		}
-
-		currentState = toState;
-		GD.Print(currentState);
-	}
+	
 
 	private void rollPlayer(){
 		GD.Print("aa");
@@ -242,14 +203,14 @@ public class Player : BaseCharacter {
 		
 		
 
-		Vector2 initialVector = new Vector2(xDir * rollSpeed,yDir * rollSpeed);
-
+		Vector2 initialVector = new Vector2(xDir * 50,yDir * 50);
+		movementVector = Vector2.Zero;
 		physicsTween.InterpolateMethod(this, "move_and_slide", initialVector, initialVector, rollDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
 		if (!physicsTween.IsActive()){
 			GD.Print("start");
 			physicsTween.Start();
 		}
-		MoveAndSlide(initialVector);
+		//MoveAndSlide(initialVector);
 		changeState(STATES.IDLE);
 		GD.Print(currentState);
 	}
@@ -258,11 +219,6 @@ public class Player : BaseCharacter {
 
 		if(inputEvent.IsActionPressed("ui_jump") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE, STATES.BOARD}.Contains(currentState))){
 			changeState(STATES.JUMP);
-		}
-		// Ive been trying for at least 3 days now to get rolling working. I give up, you win.
-		// HAHAHAAHAHAA FUCK YOU TWEENS I WIN INTO YOUR FUCKING TRASHCAN YOU GO LMAOOOOOOO I GOT ROLL WORKING YESYESYESYESYESYESYESYES
-		else if (Input.IsActionPressed("ui_roll") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState))){
-			changeState(STATES.ROLL);
 		}
 		// Elifs because we want these to be mutually exclusive
 		else if (inputEvent.IsActionPressed("ui_board") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState)) && onSlope){
@@ -278,13 +234,15 @@ public class Player : BaseCharacter {
 				aimMode = true;
 			}
 		}
-
-		
-		
 	}
 
 	public override void _PhysicsProcess(float delta){
-		getMovementInput(delta);
+		if (!onSlope){
+			getMovementInput(delta);
+		}
+		else{
+			getMovementOnSlope(delta);
+		}
 	}
 
 	// Signals
@@ -300,64 +258,39 @@ public class Player : BaseCharacter {
 	}
 
 	public void _on_PhysicsTween_tween_completed(Godot.Object o, NodePath key){
-		currentSpeed = baseSpeed;
+		currentSpeed = 0;
 		changeState(STATES.IDLE);
 	}
 
-
-	public void rotatePlayer(float radians){
-		//GD.Print(radians);
-		float degrees = (float) System.Math.Round(Godot.Mathf.Rad2Deg(radians), 1);
-		//GD.Print(degrees);
-		ANGLES toAngle = ANGLES.NORTH;
-	    
-		// Godot has a dumb angle system, where North is at -180, south at 0, east at -90, and west at 90 or -270
-		// YandereDev approved!
-		if ((-292.5 <= degrees) && (degrees < -247.5)){
-			toAngle = ANGLES.WEST;
+	private void playAnimation(string animationName){
+		string newAnimationName = animationName;
+		switch(currentAngle){
+			case ANGLES.NORTH:
+				newAnimationName += "_NORTH";
+				break;
+			case ANGLES.NORTHEAST:
+				newAnimationName += "_NORTHEAST";
+				break;
+			case ANGLES.EAST:
+				newAnimationName += "_EAST";
+				break;
+			case ANGLES.SOUTHEAST:
+				newAnimationName += "_SOUTHEAST";
+				break;
+			case ANGLES.SOUTH:
+				newAnimationName += "_SOUTH";
+				break;
+			case ANGLES.SOUTHWEST:
+				newAnimationName += "_SOUTHWEST";
+				break;
+			case ANGLES.WEST:
+				newAnimationName += "_WEST";
+				break;
+			case ANGLES.NORTHWEST:
+				newAnimationName += "_NORTHWEST";
+				break;
 		}
-		else if ((degrees < -202.5)){
-			toAngle = ANGLES.NORTHWEST;
-		}
-		else if((degrees < -157.5)){
-			toAngle = ANGLES.NORTH;
-		}
-		else if ( (degrees < -112.5)){
-			toAngle = ANGLES.NORTHEAST;
-		}
-		else if ( (degrees < -67.5)){
-			toAngle = ANGLES.EAST;
-		}
-		else if ( (degrees < -22.5)){
-			toAngle = ANGLES.SOUTHEAST;
-		}
-		else if ((degrees < 22.5)){
-			toAngle = ANGLES.SOUTH;
-		}
-		else if ( (degrees < 67.5)){
-			toAngle = ANGLES.SOUTHWEST;
-		}
-		// Note that 90 can also be -270, so we also have to check for that
-		else if ((degrees < 112.5)){
-			toAngle = ANGLES.WEST;
-		}
-		
-		// We want only the Interact Cast (Ray Cast2D) to rotate according to the true rotation
-		// Only for AimMode
-		if (aimMode){
-			interactCast.Rotation = radians;
-		}
-		else{
-			interactCast.RotationDegrees = ((float) toAngle) * 45.0F + 180.0F;
-		}
-		// TODO remove this if statement its a test
-		//GD.Print(toAngle);
-
-		currentAngle = toAngle;
-	}
-
-	public void playSpriteAnimation(string animation){
-		
+		animationPlayer.Play(newAnimationName);
 	}
 
 	public void _on_RollTimer_timeout(){
