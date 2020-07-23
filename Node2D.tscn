@@ -1,13 +1,10 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://Characters/Player/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Environment/Mountains/Slope/Slope.tscn" type="PackedScene" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 103, 38 )
-
-[sub_resource type="RectangleShape2D" id=2]
-extents = Vector2( 204.766, 16.3073 )
 
 [node name="Node2D" type="Node2D"]
 
@@ -23,12 +20,3 @@ shape = SubResource( 1 )
 position = Vector2( 361.705, -204.907 )
 ySpeed = -0.8
 slopeDirection = 1
-
-[node name="StaticBody2D2" type="StaticBody2D" parent="."]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2( 360.248, 233.36 )
-rotation = 3.14159
-scale = Vector2( 1.16897, 1.24025 )
-shape = SubResource( 2 )
-one_way_collision = true
