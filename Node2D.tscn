@@ -21,13 +21,13 @@ shape = SubResource( 1 )
 
 [node name="Area2D" parent="." instance=ExtResource( 2 )]
 position = Vector2( 361.705, -204.907 )
-ySpeed = -1.0
+ySpeed = -0.8
 slopeDirection = 1
 
 [node name="StaticBody2D2" type="StaticBody2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D2"]
-position = Vector2( 362.369, 235.481 )
+position = Vector2( 360.248, 233.36 )
 rotation = 3.14159
 scale = Vector2( 1.16897, 1.24025 )
 shape = SubResource( 2 )

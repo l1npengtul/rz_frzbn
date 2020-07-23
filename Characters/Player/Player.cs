@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 
-// Hours with dadadada tenshi on loop: 10
+// Hours with dadadada tenshi on loop: 15
 
 public class Player : Character.BaseCharacter {
 	private new int healthPoints = 10;
@@ -16,6 +16,8 @@ public class Player : Character.BaseCharacter {
 
 	// Boolean to see if AimMode is enabled. In aim mode, the character will follow the crosshair
 	private new bool aimMode = false;
+	private float previousAngleRadians = 0;
+	private ANGLES previousAngleAngle = ANGLES.NORTH;
 
 	// Nodes
 	
@@ -24,6 +26,14 @@ public class Player : Character.BaseCharacter {
 	private Camera2D camera;
 	private Timer idleLongTimer;
 	private new RayCast2D interactCast;
+
+	public enum AttackType{
+		MAGE_TRIBOLT,
+		MAGE_SHIELD,
+		RANGED_CROSSBOW,
+		MELEE_KICK,
+		MELEE_PUNCH,
+	}
 	
 
 	// Non FSM State Variables
@@ -153,7 +163,7 @@ public class Player : Character.BaseCharacter {
 			}
 			else{
 				//GD.Print(movementVector);
-				rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
+				rotatePlayer(inputVector.Normalized().Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
 			}
 		}
 		else{
@@ -173,7 +183,13 @@ public class Player : Character.BaseCharacter {
 	}
 
 	private void getMovementOnBoard(float delta){
-		
+		Vector2 globalMouse = GetGlobalMousePosition();
+		Vector2 localPos = this.GlobalPosition;
+		inputVector = new Vector2(globalMouse.x - localPos.x, globalMouse.y - localPos.y).Normalized();
+
+		rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
+		movementVector = movementVector.MoveToward(inputVector * maxSpeed, accelerationMultiplier * delta);
+
 	}
 	
 	
@@ -224,15 +240,10 @@ public class Player : Character.BaseCharacter {
 		else if (inputEvent.IsActionPressed("ui_board") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState)) && onSlope){
 			changeState(STATES.BOARD);
 		}
-		
-
-		if(inputEvent.IsActionPressed("ui_aimmode")){
-			if(aimMode){
-				aimMode = false;
-			}
-			else{
-				aimMode = true;
-			}
+		else if (inputEvent.IsActionPressed("ui_attack") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState))){
+			// TODO: Do hotbar check to call correct change state
+			GD.Print("attacc");
+			changeState(STATES.ATTACK_MAGE);
 		}
 	}
 
@@ -297,4 +308,194 @@ public class Player : Character.BaseCharacter {
 		currentSpeed = baseSpeed;
 		changeState(STATES.IDLE);
 	}
+
+	public void _on_AnimationPlayer_animation_finished(string anim_name){
+		changeState(STATES.IDLE);
+		if (anim_name == "ATTACK"){
+			this.Rotation = previousAngleRadians;
+			currentAngle = previousAngleAngle;
+			interactCast.RotationDegrees = ((float) currentAngle) * 45.0F + 180.0F;
+		}
+	}
+
+	new public void rotatePlayer(float radians, RayCast2D castRotater){
+		//GD.Print(radians);
+		float degrees = (float) System.Math.Round(Godot.Mathf.Rad2Deg(radians), 1);
+		//GD.Print(degrees);
+		ANGLES toAngle = ANGLES.NORTH;
+		
+		// Godot has a dumb angle system, where North is at -180, south at 0, east at -90, and west at 90 or -270
+		// YandereDev approved!
+		if ((-292.5 <= degrees) && (degrees < -247.5)){
+			toAngle = ANGLES.WEST;
+		}
+		else if ((degrees < -202.5)){
+			toAngle = ANGLES.NORTHWEST;
+		}
+		else if((degrees < -157.5)){
+			toAngle = ANGLES.NORTH;
+		}
+		else if ( (degrees < -112.5)){
+			toAngle = ANGLES.NORTHEAST;
+		}
+		else if ( (degrees < -67.5)){
+			toAngle = ANGLES.EAST;
+		}
+		else if ( (degrees < -22.5)){
+			toAngle = ANGLES.SOUTHEAST;
+		}
+		else if ((degrees < 22.5)){
+			toAngle = ANGLES.SOUTH;
+		}
+		else if ( (degrees < 67.5)){
+			toAngle = ANGLES.SOUTHWEST;
+		}
+		// Note that 90 can also be -270, so we also have to check for that
+		else if ((degrees < 112.5)){
+			toAngle = ANGLES.WEST;
+		}
+		
+		// We decided to move to a system where if you attack the player automatically rotates
+		castRotater.RotationDegrees = ((float) toAngle) * 45.0F + 180.0F;
+		
+		currentAngle = toAngle;
+	}
+
+	
+	public void rotatePlayer(float radians, RayCast2D castRotater, bool trueRaycastRotate){
+		//GD.Print(radians);
+		float degrees = (float) System.Math.Round(Godot.Mathf.Rad2Deg(radians), 1);
+		//GD.Print(degrees);
+		ANGLES toAngle = ANGLES.NORTH;
+		
+		// Godot has a dumb angle system, where North is at -180, south at 0, east at -90, and west at 90 or -270
+		// YandereDev approved!
+		if ((-292.5 <= degrees) && (degrees < -247.5)){
+			toAngle = ANGLES.WEST;
+		}
+		else if ((degrees < -202.5)){
+			toAngle = ANGLES.NORTHWEST;
+		}
+		else if((degrees < -157.5)){
+			toAngle = ANGLES.NORTH;
+		}
+		else if ( (degrees < -112.5)){
+			toAngle = ANGLES.NORTHEAST;
+		}
+		else if ( (degrees < -67.5)){
+			toAngle = ANGLES.EAST;
+		}
+		else if ( (degrees < -22.5)){
+			toAngle = ANGLES.SOUTHEAST;
+		}
+		else if ((degrees < 22.5)){
+			toAngle = ANGLES.SOUTH;
+		}
+		else if ( (degrees < 67.5)){
+			toAngle = ANGLES.SOUTHWEST;
+		}
+		// Note that 90 can also be -270, so we also have to check for that
+		else if ((degrees < 112.5)){
+			toAngle = ANGLES.WEST;
+		}
+		
+		// We decided to move to a system where if you attack the player automatically rotates
+		if (trueRaycastRotate){
+			castRotater.Rotation = radians + Godot.Mathf.Deg2Rad(180.0F);
+		}
+		currentAngle = toAngle;
+	}
+
+	
+	public void attackWithRotateStart(AttackType attackType){
+		previousAngleRadians = this.Rotation;
+		previousAngleAngle = currentAngle;
+
+		Vector2 mousePos = GetGlobalMousePosition();
+		Vector2 globalPos = this.GlobalPosition;
+		float mouseAndGlobalAngle = Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(90.0F);
+		interactCast.Rotation =  mouseAndGlobalAngle;
+		rotatePlayer(mouseAndGlobalAngle,interactCast,true);
+
+		switch(attackType){
+			case AttackType.MAGE_TRIBOLT:
+				animationPlayer.Play("ATTACK");
+				break;
+			case AttackType.MAGE_SHIELD:
+				animationPlayer.Play("ATTACK");
+				break;
+			case AttackType.RANGED_CROSSBOW:
+				animationPlayer.Play("ATTACK");
+				break;
+		}
+	}
+
+	new protected void changeState(STATES toState){
+		// Check for any current states
+            switch (currentState){
+                case STATES.DEAD:
+                    QueueFree();
+                    break;
+                // Note: This is done so that melee has to finish and you cant move while attacking melee.
+                case STATES.ATTACK_MELEE:
+                    SetPhysicsProcess(true);
+                    break;
+				case STATES.ATTACK_MAGE:
+					SetPhysicsProcess(true);
+					break;
+                case STATES.ROLL:
+                    SetPhysicsProcess(true);
+                    break;
+                
+            }
+            // Get the new state
+            switch (toState){
+                case STATES.IDLE:
+                    //aniPlayer.Play("IDLE");
+                    break;
+                case STATES.IDLE_LONG:
+                    // TODO: Make More Idle Long Anims if possible
+                    //aniPlayer.Play("IDLE_LONG");
+                    break;
+                case STATES.MOVE:
+                    //aniPlayer.Play("RUN");
+                    break;
+                /* TODO: Implement Jump 
+                case STATES.JUMP:
+                    aniPlayer.Play("RUN");
+                    break;
+                    */
+                case STATES.ROLL:
+                    SetPhysicsProcess(false);
+                    //aniPlayer.Play("ROLL");
+                    break;
+                case STATES.JUMP:
+                    // TODO: Implement jump (Y movement UP, reduced air control by set margain)
+                    //aniPlayer.Play("IDLE");
+                    break;
+                case STATES.STAGGER:
+                    // TODO: Only when hit 
+                    // Play knockback anim
+                    // Give IFrames
+                    //aniPlayer.Play("IDLE");
+                    break;
+                case STATES.ATTACK_MAGE:
+                    // So here is the thing:
+                    // Emilia's sprite is broken up into many parts, allowing us to "blend" animations
+                    // Emilia will play the attack mage
+                    //aniPlayer.Play("IDLE");
+					SetPhysicsProcess(false);
+					attackWithRotateStart(AttackType.MAGE_TRIBOLT);
+                    break;
+                // Skipping all other states until movement and roll works properly. 
+                default:
+                    //aniPlayer.Play("IDLE");
+                    break;
+            }
+            currentState = toState;
+            //GD.Print(currentState);
+	    }
+	
+
+
 }

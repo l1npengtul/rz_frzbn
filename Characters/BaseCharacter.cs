@@ -15,8 +15,8 @@ namespace Character{
 
         // Movement Related
         protected Vector2 movementVector = new Vector2(0.0F,0.0F);
-        protected const float frictionMultiplier = 4000.0F;
-        protected const float accelerationMultiplier = 4000.0F;
+        protected const float frictionMultiplier = 7000.0F;
+        protected const float accelerationMultiplier = 7000.0F;
         protected const float rollDuration = 0.25F;
         protected float walkSpeedMultiplier = 1.0F;
         protected float runSpeedMultiplier = 1.6F;
@@ -237,5 +237,7 @@ namespace Character{
         public void roll(){
             
         }
+
+        
     }
 }
