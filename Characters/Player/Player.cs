@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 
-// Hours with dadadada tenshi on loop: 15
+// Hours with dadadada tenshi on loop: 20
 
 public class Player : Character.BaseCharacter {
 	private new int healthPoints = 10;
