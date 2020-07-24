@@ -1,4 +1,6 @@
 using Godot;
+using System;
+using System.Text;
 
 namespace Character{
     public class BaseCharacter : KinematicBody2D{
@@ -39,6 +41,8 @@ namespace Character{
         protected float baseMeleeDamage = 10.0F;
         [Export] 
         protected float strength = 1.0F;
+
+        protected StringBuilder newAnim = new StringBuilder("", 50);
 
         // FSM
         protected enum STATES {
@@ -237,6 +241,38 @@ namespace Character{
         public void roll(){
             
         }
+        protected void playAnimation(string animationName, ANGLES Angles){
+            newAnim.Insert(0, animationName);
+            // TODO: Change to StringBuilder
+            switch(Angles){
+                case ANGLES.NORTH:
+                    newAnim.Append("_NORTH");
+                    break;
+                case ANGLES.NORTHEAST:
+                    newAnim.Append("_NORTHEAST");
+                    break;
+                case ANGLES.EAST:
+                    newAnim.Append("_EAST");
+                    break;
+                case ANGLES.SOUTHEAST:
+                    newAnim.Append("_SOUTHEAST");
+                    break;
+                case ANGLES.SOUTH:
+                    newAnim.Append("_SOUTH");
+                    break;
+                case ANGLES.SOUTHWEST:
+                    newAnim.Append("_SOUTHWEST");
+                    break;
+                case ANGLES.WEST:
+                    newAnim.Append("_WEST");
+                    break;
+                case ANGLES.NORTHWEST:
+                    newAnim.Append("_NORTHWEST");
+                    break;
+            }
+            animationPlayer.Play(newAnim.ToString());
+        }
+
 
         
     }

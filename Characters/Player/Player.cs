@@ -271,37 +271,7 @@ public class Player : Character.BaseCharacter {
 		changeState(STATES.IDLE);
 	}
 
-	private void playAnimation(string animationName){
-		string newAnimationName = animationName;
-		switch(currentAngle){
-			case ANGLES.NORTH:
-				newAnimationName += "_NORTH";
-				break;
-			case ANGLES.NORTHEAST:
-				newAnimationName += "_NORTHEAST";
-				break;
-			case ANGLES.EAST:
-				newAnimationName += "_EAST";
-				break;
-			case ANGLES.SOUTHEAST:
-				newAnimationName += "_SOUTHEAST";
-				break;
-			case ANGLES.SOUTH:
-				newAnimationName += "_SOUTH";
-				break;
-			case ANGLES.SOUTHWEST:
-				newAnimationName += "_SOUTHWEST";
-				break;
-			case ANGLES.WEST:
-				newAnimationName += "_WEST";
-				break;
-			case ANGLES.NORTHWEST:
-				newAnimationName += "_NORTHWEST";
-				break;
-		}
-		animationPlayer.Play(newAnimationName);
-	}
-
+	
 	public void _on_RollTimer_timeout(){
 		currentSpeed = baseSpeed;
 		changeState(STATES.IDLE);
