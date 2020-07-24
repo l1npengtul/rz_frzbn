@@ -180,11 +180,17 @@ public class Player : Character.BaseCharacter {
 	private void getMovementOnBoard(float delta){
 		Vector2 globalMouse = GetGlobalMousePosition();
 		Vector2 localPos = this.GlobalPosition;
-		inputVector = new Vector2(globalMouse.x - localPos.x, globalMouse.y - localPos.y).Normalized();
+		inputVector = new Vector2(globalMouse.x - localPos.x + xSlopeModifier, globalMouse.y - localPos.y + ySlopeModifier).Normalized();
+		float slopeModifierVector = new Vector2(xSlopeModifier,ySlopeModifier).Angle();
+		if ((slopeModifierVector > )){
 
+		}
 		rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
 		movementVector = movementVector.MoveToward(inputVector * maxSpeed, accelerationMultiplier * delta);
 
+
+
+		MoveAndSlide(movementVector);
 	}
 	
 	
@@ -243,11 +249,13 @@ public class Player : Character.BaseCharacter {
 	}
 
 	public override void _PhysicsProcess(float delta){
+		// ~~TODO: Consolidate into one function for finer control over board states~~ NVM just put board off anim in 
+		// ToIdle state machine condition
 		if (!onSlope){
 			getMovementInput(delta);
 		}
 		else if(onBoard){
-			getMovementOnSlope(delta);
+			getMovementOnBoard(delta);
 		}
 		else{
 			getMovementOnSlope(delta);
@@ -414,6 +422,9 @@ public class Player : Character.BaseCharacter {
 			case STATES.ROLL:
 				SetPhysicsProcess(true);
 				break;
+			case STATES.MOVE:
+				onBoard = false;
+				break;
 			
 		}
 		// Get the new state
@@ -457,6 +468,7 @@ public class Player : Character.BaseCharacter {
 				break;
 			case STATES.BOARD:
 				onBoard = true;
+				GD.Print("slope true");
 				break;
 			// Skipping all other states until movement and roll works properly. 
 			default:
