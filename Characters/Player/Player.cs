@@ -182,14 +182,23 @@ public class Player : Character.BaseCharacter {
 		Vector2 localPos = this.GlobalPosition;
 		inputVector = new Vector2(globalMouse.x - localPos.x + xSlopeModifier, globalMouse.y - localPos.y + ySlopeModifier).Normalized();
 		float slopeModifierVector = new Vector2(xSlopeModifier,ySlopeModifier).Angle();
-		if ((CalculateVectorMagnitude(slopeModifierVector) )){
+		// Check if input direction 
+		float slvecangle = Mathf.Rad2Deg(slopeVec.Angle());
+		float inputVecAngle = Mathf.Rad2Deg(inputVector.Angle());
+		float lowerBoundDegreeSlope = slvecangle - 90;
+		float upperBoundDegreeSlope = slvecangle + 90;
+		if ((inputVecAngle > lowerBoundDegreeSlope) && (inputVecAngle < upperBoundDegreeSlope)){
+			inputVector.x *= -1;
+			inputVector.y *= -1;
+			rotatePlayer(inputVector.Angle() + Mathf.Deg2Rad(-90.0F), interactCast);
+			GD.Print(inputVecAngle);
+		}
+		else {
+			rotatePlayer(Mathf.Deg2Rad(inputVecAngle) + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
+			GD.Print(inputVecAngle + "a");
 
 		}
-		rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
 		movementVector = movementVector.MoveToward(inputVector * maxSpeed, accelerationMultiplier * delta);
-
-
-
 		MoveAndSlide(movementVector);
 	}
 	

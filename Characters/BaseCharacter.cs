@@ -29,6 +29,7 @@ namespace Character{
         protected const int rollSpeed = 650;
         protected int currentSpeed = 600;
         protected int slopeDir = -1;
+        protected Vector2 slopeVec = new Vector2(0.0F,0.0F);
 
         protected bool aimMode = false;
 
@@ -199,6 +200,8 @@ namespace Character{
             GD.Print("slope enter");
             xSlopeModifier = xs;
             ySlopeModifier = ys;
+            slopeVec.x = xs;
+            slopeVec.y = ys;
             /*float setX = 0.0F;
             float setY = 0.0F;
             switch(slopeDir){
@@ -234,6 +237,8 @@ namespace Character{
             GD.Print("Slope exit");
             xSlopeModifier = 0.0F;
             ySlopeModifier = 0.0F;
+            slopeVec.x = xSlopeModifier;
+            slopeVec.y = ySlopeModifier;
             slopeDir = -1;
             onSlope = false;
         }
