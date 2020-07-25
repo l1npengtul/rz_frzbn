@@ -182,7 +182,7 @@ public class Player : Character.BaseCharacter {
 		Vector2 localPos = this.GlobalPosition;
 		inputVector = new Vector2(globalMouse.x - localPos.x + xSlopeModifier, globalMouse.y - localPos.y + ySlopeModifier).Normalized();
 		float slopeModifierVector = new Vector2(xSlopeModifier,ySlopeModifier).Angle();
-		if ((slopeModifierVector > )){
+		if ((CalculateVectorMagnitude(slopeModifierVector) )){
 
 		}
 		rotatePlayer(inputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
