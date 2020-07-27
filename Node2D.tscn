@@ -18,5 +18,6 @@ shape = SubResource( 1 )
 
 [node name="Area2D" parent="." instance=ExtResource( 2 )]
 position = Vector2( 361.705, -204.907 )
+xSpeed = -0.8
 ySpeed = -0.8
 slopeDirection = 1
