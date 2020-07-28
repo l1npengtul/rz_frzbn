@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Text;
 
-namespace Character{
+namespace rz_frzbn.Characters.BaseCharacter{
     public class BaseCharacter : KinematicBody2D{
 
         // Nodes

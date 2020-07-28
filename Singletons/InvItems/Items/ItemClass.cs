@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-namespace ItemClass{
+namespace rz_frzbn.Singletons.InvItems.Items.ItemClass{
 
     public enum ItemTypes{
         Weapon,
@@ -10,6 +10,6 @@ namespace ItemClass{
         OtherItem,
     }
 
-    public class Items : Node {
+    public class ItemClass : Node {
     }
 }

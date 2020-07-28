@@ -1,7 +1,7 @@
 using Godot;
-using ItemClass;
+using rz_frzbn.Singletons.InvItems.Items.ItemClass;
 
-namespace BaseItemClass{
+namespace rz_frzbn.Singletons.InvItems.Items.BaseItemClass{
     public class BaseItemClass : Node2D{
         [Export]
         protected string itemModifierID;
@@ -14,7 +14,7 @@ namespace BaseItemClass{
         [Export]
         protected string itemDescriptionID;
         [Export]
-        protected ItemClass.ItemTypes itemTypes;
+        protected ItemTypes itemTypes;
 
         public string getItemModifier(){
             return Tr(itemModifierID);
