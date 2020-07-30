@@ -1,0 +1,16 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+
+[deps]
+
+files=[ "res://translat/translation/rzfrzbn_translations.en.translation", "res://translat/translation/rzfrzbn_translations.ko.translation", "res://translat/translation/rzfrzbn_translations.ja.translation" ]
+
+source_file="res://translat/translation/rzfrzbn_translations.csv"
+dest_files=[ "res://translat/translation/rzfrzbn_translations.en.translation", "res://translat/translation/rzfrzbn_translations.ko.translation", "res://translat/translation/rzfrzbn_translations.ja.translation" ]
+
+[params]
+
+compress=true
+delimiter=0

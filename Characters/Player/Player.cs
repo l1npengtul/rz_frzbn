@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 
-// Hours with dadadada tenshi on loop: 20
+// Hours with dadadada tenshi on loop: 30
 
 namespace rz_frzbn.Characters.Player{
 	public class Player : rz_frzbn.Characters.BaseCharacter.BaseCharacter {

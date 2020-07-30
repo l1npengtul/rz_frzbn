@@ -136,6 +136,10 @@ ui_meleeattack={
  ]
 }
 
+[locale]
+
+translations=PoolStringArray( "res://translat/translation/rzfrzbn_translations.en.translation", "res://translat/translation/rzfrzbn_translations.ja.translation", "res://translat/translation/rzfrzbn_translations.ko.translation" )
+
 [logging]
 
 file_logging/enable_file_logging=true
