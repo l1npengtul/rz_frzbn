@@ -3,3 +3,4 @@ Cargo.lock
 .idea
 .mono
 .blob
+*.blob
