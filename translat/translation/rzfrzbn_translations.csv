@@ -9,7 +9,7 @@ game_start_save_info_maps,Maps: %s/7,지도들: %s/7,地図: %s/7
 weapon_base_title,%s Base Weapon,%s 배이스 무기,%s デフォルトの武器
 weapon_base_description,Base Weapon ,배이스 무기,デフォルトの武器
 weapon_mage_icebolt_title,%s El Huma,%s 엘 휴마 ,%s エル・ヒューマ
-weapon_mage_icebolt_description,Shoots 3 ice bolts from your hands. ,손에서 얼음 볼트 3 개를 쏜다.,手で氷ボルト3本を撃つ。
+weapon_mage_icebolt_description,Shoots 3 ice bolts from your hands. ,손에서 얼음 볼트 3 개를 쏜다.,手から氷ボルトを3本撃つ。
 weapon_mage_icebolt_stats,[list][*]Small Mana Usage[*]5 Damage[/list],[list][*]Small Mana Usage[*]5 Damage[/list],[list][*]Small Mana Usage[*]5 Damage[/list]
 weapon_mage_shield,%s Huma,%s 휴마 ,%s ヒューマ
 weapon_ranged_crossbow,%s Base Weapon,%s 석궁,%s クロスボウ
