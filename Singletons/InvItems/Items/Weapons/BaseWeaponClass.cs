@@ -23,23 +23,18 @@ namespace rz_frzbn.Singletons.InvItems.Items.Weapons{
 
         protected bool canAttack = true;
 
+        protected Timer attackTimer;
+        protected Tween weaponTween;
+        protected AnimatedSprite sprite;
+        protected Position2D pos2d;
+
         public void _on_Timer_timeout(){
             canAttack = true;
         }
 
         public void attack(){
-            if(canAttack){
-                switch(currentWeaponType){
-                    case WeaponType.MAGE:
-                        break;
-                    case WeaponType.MELEE:
-                        break;
-                    case WeaponType.RANGED:
-                        break;
-                    case WeaponType.NONE:
-                        break;
-                }
-            }
+            // Do Nothing! This is ment as a placeholder so individual weapons can implement their own behaviour! 
+            // This only exists so calls to `weapon.attack()` dont return errors!
         }
     }
 }
