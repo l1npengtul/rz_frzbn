@@ -16,5 +16,6 @@ Made in C# and Godot. Currently way off from completion. <br>
 * Translate English -> Korean, Japanese
 * Learn and ~~have fun~~ die debugging
 * Update `CONTRIBUTERS.md` and `LICENSE`
+* Get a better name then `RZ_FRZBN`
 ---
 

@@ -11,6 +11,9 @@ namespace rz_frzbn.Weapons.BaseBullet{
     }
     public class BaseBullet : Area2D{
         protected int BulletDamage;
-        protected 
+        protected BulletType bulletType;
+        protected int BulletVelocity;
+        protected int BulletHealth;
+        protected float setRot;
     }
 }
