@@ -4,3 +4,5 @@ Cargo.lock
 .mono
 .blob
 *.blob
+*.translation
+.import

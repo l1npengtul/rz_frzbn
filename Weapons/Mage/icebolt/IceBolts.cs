@@ -6,7 +6,7 @@ namespace rz_frzbn.Weapons.Mage.icebolt{
             SetPhysicsProcess(false);
         }
 
-        public void setBullet(float rot, ){
+        public void setBullet(float rot, int speed, int damage){
 
         }
 
