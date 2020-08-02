@@ -277,15 +277,15 @@ namespace rz_frzbn.Characters.BaseCharacter{
             }
             animationPlayer.Play(newAnim.ToString());
         }
-        public float CalculateVectorMagnitude(Vector2 vec, bool useRoot = true){
-            if (useRoot){
-                return Mathf.Sqrt(Mathf.Pow(vec.x,2) + Mathf.Pow(vec.y,2));
-            }
-            else {
-                return Mathf.Pow(vec.x,2) + Mathf.Pow(vec.y,2);
-
+        
+        protected void takeDamage(float damage){
+            // TODO: Take into account damage vulnarabilities
+            this.healthPoints += damage * -1;
+            if (this.healthPoints <= 0.0F){
+                changeState(STATES.DYING);
             }
         }
+        
     }
 
 }
