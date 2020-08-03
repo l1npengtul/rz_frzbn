@@ -24,17 +24,21 @@ namespace rz_frzbn.Weapons.BaseBullet{
         protected float xvar = 0,yvar = 0;
 
         protected Timer timer;
-        protected VisibilityNotifier2D visibility;
+        //protected VisibilityNotifier2D visibility;
         protected AudioStreamPlayer2D audio;
+        protected AnimatedSprite sprite;
 
         protected bool isTimerExpired = false;
         protected bool isNotVisible = false;
+        protected bool toBreak_anim = false, toBreak_audio = false;
 
         public override void _Ready(){
             SetProcess(false);
             this.timer = GetNode<Timer>("Timer");
-            this.visibility = GetNode<VisibilityNotifier2D>("VisibilityNotifier2D");
+            //this.visibility = GetNode<VisibilityNotifier2D>("VisibilityNotifier2D");
             this.audio = GetNode<AudioStreamPlayer2D>("AudioStreamPlayer2D");
+            this.sprite = GetNode<AnimatedSprite>("AnimatedSprite");
+            sprite.Play("IDLE");
             this.timer.WaitTime = this.BulletLastTime;
             this.timer.Start();
         }
@@ -51,9 +55,15 @@ namespace rz_frzbn.Weapons.BaseBullet{
             setTo.y = this.Position.y + moveTo.y * (float)BulletVelocity;
             this.Position = setTo;
 
-            if(isTimerExpired && isNotVisible){
-                // No Programmer-Chan, you're getting this all wrong! We dont **kill** objects, we ***FREE*** them!
-                this.QueueFree();
+            if(isTimerExpired){
+                // No Programmer-Chan, you're getting this all wrong! We dont **kill** objects, we ***FREE*** them
+                sprite.Play("BREAK");
+                // this.sprite.Play("BREAK");
+                toBreak_audio = true;
+            }
+            
+            if(toBreak_anim && toBreak_audio){
+                QueueFree();
             }
         }
 
@@ -61,6 +71,7 @@ namespace rz_frzbn.Weapons.BaseBullet{
             // TODO: Sound effect
             if(body.HasMethod("takeDamage")){
                 // this.audio.Play("HitBody:);
+                // this.sprite.Play("BREAK");
                 body.Call("takeDamage", (float)this.BulletDamage);
             } 
             else{
@@ -69,19 +80,15 @@ namespace rz_frzbn.Weapons.BaseBullet{
         }
 
         public void _on_AudioStreamPlayer2D_finished(){
-            this.QueueFree();
-        }
-
-        public void _on_VisibilityNotifier2D_screen_exited(){
-            this.isNotVisible = true;
-        }
-
-        public void _on_VisibilityNotifier2D_screen_entered(){
-            this.isNotVisible = false;
+            toBreak_audio = true;
         }
 
         public void _on_Timer_timeout(){
             this.isTimerExpired = true;
+        }
+
+        public void _on_AnimatedSprite_animation_finished(){
+            toBreak_anim = true;
         }
     }
 }

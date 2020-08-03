@@ -17,7 +17,6 @@ namespace rz_frzbn.Singletons.InvItems.Items.Weapons.Mage.IceBolt{
             if (canAttack){
                 sprite.Play("ATTACK"); // TODO: Implement Attack Anim
                 float globalrot = this.GlobalRotation;
-                
             }
         }
     }
