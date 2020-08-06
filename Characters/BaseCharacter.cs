@@ -3,7 +3,18 @@ using System;
 using System.Text;
 
 namespace rz_frzbn.Characters.BaseCharacter{
+
+    public enum EntityType{
+        Player,
+        EnemyMage,
+        EnemyMelee,
+        Passive,
+        NPC,
+        UNUSED,
+    }
     public class BaseCharacter : KinematicBody2D{
+        [Export]
+        protected EntityType entityType = EntityType.UNUSED;
 
         // Nodes
         protected RayCast2D interactCast;
@@ -45,6 +56,15 @@ namespace rz_frzbn.Characters.BaseCharacter{
 
         protected StringBuilder newAnim = new StringBuilder("", 50);
 
+
+        public enum AttackType{
+			MAGE_TRIBOLT,
+			MAGE_SHIELD,
+			RANGED_CROSSBOW,
+			MELEE_KICK,
+			MELEE_PUNCH,
+		}
+
         // FSM
         protected enum STATES {
             IDLE,
@@ -65,65 +85,77 @@ namespace rz_frzbn.Characters.BaseCharacter{
 	    protected STATES currentState = STATES.IDLE;
 
         protected void changeState(STATES toState){
-		// Check for any current states
-            switch (currentState){
-                case STATES.DEAD:
-                    QueueFree();
-                    break;
-                // Note: This is done so that melee has to finish and you cant move while attacking melee.
-                case STATES.ATTACK_MELEE:
-                    SetPhysicsProcess(true);
-                    break;
-                case STATES.ROLL:
-                    SetPhysicsProcess(true);
-                    break;
-                
-            }
-            // Get the new state
-            switch (toState){
-                case STATES.IDLE:
-                    //aniPlayer.Play("IDLE");
-                    break;
-                case STATES.IDLE_LONG:
-                    // TODO: Make More Idle Long Anims if possible
-                    //aniPlayer.Play("IDLE_LONG");
-                    break;
-                case STATES.MOVE:
-                    //aniPlayer.Play("RUN");
-                    break;
-                /* TODO: Implement Jump 
-                case STATES.JUMP:
-                    aniPlayer.Play("RUN");
-                    break;
-                    */
-                case STATES.ROLL:
-                    SetPhysicsProcess(false);
-                    //aniPlayer.Play("ROLL");
-                    break;
-                case STATES.JUMP:
-                    // TODO: Implement jump (Y movement UP, reduced air control by set margain)
-                    //aniPlayer.Play("IDLE");
-                    break;
-                case STATES.STAGGER:
-                    // TODO: Only when hit 
-                    // Play knockback anim
-                    // Give IFrames
-                    //aniPlayer.Play("IDLE");
-                    break;
-                case STATES.ATTACK_MAGE:
-                    // So here is the thing:
-                    // Emilia's sprite is broken up into many parts, allowing us to "blend" animations
-                    // Emilia will play the attack mage
-                    //aniPlayer.Play("IDLE");
-                    break;
-                // Skipping all other states until movement and roll works properly. 
-                default:
-                    //aniPlayer.Play("IDLE");
-                    break;
-            }
-            currentState = toState;
-            //GD.Print(currentState);
-	    }
+			// Check for any current states
+			switch (currentState){
+				case STATES.DEAD:
+					QueueFree();
+					break;
+				// Note: This is done so that melee has to finish and you cant move while attacking melee.
+				case STATES.ATTACK_MELEE:
+					SetPhysicsProcess(true);
+					break;
+				case STATES.ATTACK_MAGE:
+					SetPhysicsProcess(true);
+					break;
+				case STATES.ROLL:
+					SetPhysicsProcess(true);
+					break;
+				case STATES.MOVE:
+					onBoard = false;
+					break;
+				
+			}
+			// Get the new state
+			switch (toState){
+				case STATES.IDLE:
+					//aniPlayer.Play("IDLE");
+					break;
+				case STATES.IDLE_LONG:
+					// TODO: Make More Idle Long Anims if possible
+					//aniPlayer.Play("IDLE_LONG");
+					break;
+				case STATES.MOVE:
+					//aniPlayer.Play("RUN");
+					break;
+				/* TODO: Implement Jump 
+				case STATES.JUMP:
+					aniPlayer.Play("RUN");
+					break;
+					*/
+				case STATES.ROLL:
+					SetPhysicsProcess(false);
+					//aniPlayer.Play("ROLL");
+					break;
+				case STATES.JUMP:
+					// TODO: Implement jump (Y movement UP, reduced air control by set margain)
+					//aniPlayer.Play("IDLE");
+					break;
+				case STATES.STAGGER:
+					// TODO: Only when hit 
+					// Play knockback anim
+					// Give IFrames
+					//aniPlayer.Play("IDLE");
+					break;
+				case STATES.ATTACK_MAGE:
+					// So here is the thing:
+					// Emilia's sprite is broken up into many parts, allowing us to "blend" animations
+					// Emilia will play the attack mage
+					//aniPlayer.Play("IDLE");
+					SetPhysicsProcess(false);
+					this.attack(null);
+					break;
+				case STATES.BOARD:
+					onBoard = true;
+					GD.Print("slope true");
+					break;
+				// Skipping all other states until movement and roll works properly. 
+				default:
+					//aniPlayer.Play("IDLE");
+					break;
+			}
+			currentState = toState;
+			//GD.Print(currentState);
+		}
         
         // Angle
         public enum ANGLES {
@@ -284,6 +316,15 @@ namespace rz_frzbn.Characters.BaseCharacter{
             if (this.healthPoints <= 0.0F){
                 changeState(STATES.DYING);
             }
+        }
+
+        protected void attack(AttackType? attackType){
+            // Do Nothing! (for now...)
+
+        }
+
+        protected void stun(float duration){
+            
         }
         
     }

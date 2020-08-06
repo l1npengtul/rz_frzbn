@@ -29,10 +29,18 @@ namespace rz_frzbn.Weapons.Mage.sheild{
         }
 
         public void _on_AudioStreamPlayer2D_finished(){
-
+            toBreak_audio = true;
         }
 
         public void _on_AnimatedSprite_animation_finished(){
+            toBreak_anim = true;
+        }
+
+        public override void _PhysicsProcess(float delta){
+            
+        }
+
+        public void takeDamage(){
 
         }
 
