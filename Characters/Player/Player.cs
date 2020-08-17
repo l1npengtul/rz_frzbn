@@ -3,6 +3,10 @@ using System;
 using System.Linq;
 
 // Hours with dadadada tenshi on loop: 37
+// I have achived a new state of dadadada tenshi 
+// I have heard it so many times that the song is constantly playing in my head on loop
+// Now every living moment is dadadada tenshi. - Aug 7 2020-2021
+// TODO: Cure disease using a noose
 
 namespace rz_frzbn.Characters.Player{
 	public class Player : rz_frzbn.Characters.BaseCharacter.BaseCharacter {
@@ -290,6 +294,7 @@ namespace rz_frzbn.Characters.Player{
 		}
 
 		public void _on_AnimationPlayer_animation_finished(string anim_name){
+			GD.Print("here");
 			changeState(STATES.IDLE);
 			if (anim_name == "ATTACK"){
 				this.Rotation = previousAngleRadians;
@@ -387,7 +392,8 @@ namespace rz_frzbn.Characters.Player{
 		}
 
 		
-		new protected void attack(AttackType? attackType){
+		protected override void attack(AttackType? attackType){
+			GD.Print("attack()");
 			if(attackType.HasValue){
 				previousAngleRadians = this.Rotation;
 				previousAngleAngle = currentAngle;
@@ -407,6 +413,9 @@ namespace rz_frzbn.Characters.Player{
 						break;
 					case AttackType.RANGED_CROSSBOW:
 						animationPlayer.Play("ATTACK");
+						break;
+					default:
+						animationPlayer.Play("ATTACK"); //TODO: Remove this
 						break;
 				}
 			}

@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Weapons/BaseBullet.tscn" type="PackedScene" id=1]
+
+[node name="Arrow" instance=ExtResource( 1 )]
+BulletDamage = 15
+bulletType = 1
+BulletVelocity = 90
+BulletLastTime = 8

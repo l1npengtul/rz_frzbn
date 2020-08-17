@@ -1,9 +1,10 @@
 using Godot;
 using System;
 using System.Text;
+using rz_frzbn.Singletons.utils;
 
 namespace rz_frzbn.Characters.BaseCharacter{
-
+    
     public enum EntityType{
         Player,
         EnemyMage,
@@ -85,6 +86,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
 	    protected STATES currentState = STATES.IDLE;
 
         protected void changeState(STATES toState){
+            GD.Print(currentState.ToString());
 			// Check for any current states
 			switch (currentState){
 				case STATES.DEAD:
@@ -109,10 +111,12 @@ namespace rz_frzbn.Characters.BaseCharacter{
 			switch (toState){
 				case STATES.IDLE:
 					//aniPlayer.Play("IDLE");
+                    SetPhysicsProcess(true);
 					break;
 				case STATES.IDLE_LONG:
 					// TODO: Make More Idle Long Anims if possible
 					//aniPlayer.Play("IDLE_LONG");
+                    SetPhysicsProcess(true);
 					break;
 				case STATES.MOVE:
 					//aniPlayer.Play("RUN");
@@ -310,7 +314,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
             animationPlayer.Play(newAnim.ToString());
         }
         
-        protected void takeDamage(float damage){
+        public void takeDamage(float damage){
             // TODO: Take into account damage vulnarabilities
             this.healthPoints += damage * -1;
             if (this.healthPoints <= 0.0F){
@@ -318,13 +322,42 @@ namespace rz_frzbn.Characters.BaseCharacter{
             }
         }
 
-        protected void attack(AttackType? attackType){
-            // Do Nothing! (for now...)
+        virtual protected void attack(AttackType? attackType){
+            // Do Nothing! Let each class that inherits `override` and define their own behaviour!
+        }
+        public void takeKnockback(float angle, float mag){
 
         }
 
-        protected void stun(float duration){
+        public void takeKnockback(float mag){
+            float angleToKB = this.movementVector.Angle() + Mathf.Deg2Rad(180);
             
+        }
+
+        public void stun(float duration){
+            
+        }
+
+        public void assignToGroup(EntityType ent){
+            switch(ent){
+                case EntityType.EnemyMage:
+                    this.AddToGroup("Enemy");
+                    break;
+                case EntityType.EnemyMelee:
+                    this.AddToGroup("Enemy");
+                    break;
+                case EntityType.Passive:
+                    this.AddToGroup("Passive");
+                    break;
+                case EntityType.Player:
+                    this.AddToGroup("Player");
+                    break;
+                case EntityType.NPC:
+                    this.AddToGroup("NPC");
+                    break;
+                default:
+                    throw new Exceptions.IllegalStateException("UNUSED for EntityType");
+            }
         }
         
     }

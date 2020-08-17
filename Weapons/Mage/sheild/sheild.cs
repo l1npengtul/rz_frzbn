@@ -8,6 +8,8 @@ namespace rz_frzbn.Weapons.Mage.sheild{
         protected float sheildHealthPoints = 50.0F;
         [Export]
         protected int sheildLifeTimeSeconds = 25;
+        [Export]
+        protected float sheildKnockback = 0.5F;
         
         
         protected AudioStreamPlayer2D audio;
@@ -37,12 +39,32 @@ namespace rz_frzbn.Weapons.Mage.sheild{
         }
 
         public override void _PhysicsProcess(float delta){
-            
+            if (toBreak_anim && toBreak_audio){
+                QueueFree();
+            } 
         }
 
-        public void takeDamage(){
-
+        public void _on_Area2D_body_entered(Godot.Node body){
+            if(body.HasMethod("takeKnockback") && body.HasMethod("takeDamage")){
+                if(body.IsInGroup("Enemy")){
+                    // do math angle shit
+                    body.Call("takeKnockback", sheildHealthPoints*1.5F);
+                    body.Call("takeDamage", this.sheildHealthPoints);
+                    _on_Timer_timeout(); // FIXME: Dirty Hack to call a signal function when we arn't calling a signal. 
+                }
+            }
         }
 
+        public void _on_Area2D_body_exited(Godot.Node body){
+            //
+        }
+
+        public void takeDamage(float damage){
+            this.sheildHealthPoints -= damage;
+            if (this.sheildHealthPoints <= 0){
+                _on_Timer_timeout(); // FIXME: Dirty Hack to call a signal function when we arn't calling a signal. 
+            }
+
+        }
     }
 }

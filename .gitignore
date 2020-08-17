@@ -6,3 +6,4 @@ Cargo.lock
 *.blob
 *.translation
 .import
+*.import
