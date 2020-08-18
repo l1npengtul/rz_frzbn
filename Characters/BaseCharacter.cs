@@ -360,7 +360,6 @@ namespace rz_frzbn.Characters.BaseCharacter{
                     break;
                 default:
                     throw new Exceptions.IllegalStateException("UNUSED for EntityType");
-                    break;
             }
         }
         
