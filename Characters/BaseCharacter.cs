@@ -44,6 +44,11 @@ namespace rz_frzbn.Characters.BaseCharacter{
         protected Vector2 slopeVec = new Vector2(0.0F,0.0F);
 
         protected bool aimMode = false;
+        
+        // FSM State Modifiers
+        protected bool onSlope = false;
+        protected bool onBoard = false;
+
 
         // HP and Fighting
         [Export]
@@ -146,7 +151,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
 					// Emilia will play the attack mage
 					//aniPlayer.Play("IDLE");
 					SetPhysicsProcess(false);
-					this.attack(null);
+					this.attack(AttackType.MAGE_TRIBOLT);
 					break;
 				case STATES.BOARD:
 					onBoard = true;
@@ -212,7 +217,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
             }
             
             // We want only the Interact Cast (Ray Cast2D) to rotate according to the true rotation
-            // Only for AimMode, which is PLAYER ONLY!!!!
+            // Only for AimMode, which is PLAYER ONLY!!!! - Out of date
             if(castRotater != null){
                 if (aimMode){
                     Vector2 mousePos = GetGlobalMousePosition();
@@ -226,9 +231,6 @@ namespace rz_frzbn.Characters.BaseCharacter{
 		    currentAngle = toAngle;
 	    }
 
-        // FSM State Modifiers
-        protected bool onSlope = false;
-        protected bool onBoard = false;
 
         public void enterSlope(float xs, float ys, int slopedir){
             //TODO: acutally use the function params
@@ -284,6 +286,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
         }
         protected void playAnimation(string animationName, ANGLES Angles){
             newAnim.Insert(0, animationName);
+            
             // TODO: Change to StringBuilder
             switch(Angles){
                 case ANGLES.NORTH:
@@ -357,6 +360,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
                     break;
                 default:
                     throw new Exceptions.IllegalStateException("UNUSED for EntityType");
+                    break;
             }
         }
         

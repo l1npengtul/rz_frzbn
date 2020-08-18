@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Linq;
 
-// Hours with dadadada tenshi on loop: 37
+// Hours with dadadada tenshi on loop: i dont fucking know anymore help
 // I have achived a new state of dadadada tenshi 
 // I have heard it so many times that the song is constantly playing in my head on loop
 // Now every living moment is dadadada tenshi. - Aug 7 2020-2021
@@ -50,7 +50,7 @@ namespace rz_frzbn.Characters.Player{
 			// This code is provided "as is", without any warrenty of any kind, implied or expressed, including but
 			// not limited to unleashing unspeakable lovecraftian mosters to roam your head, giving you YandereDev PTSD flashbacks, 
 			// horrors that shatter both your physical representation and psyche sending you to a empty void to drift forever,
-			// constantly hearing "Who is rem?" jokes, and being isekai'd into Re:Zero as Subaru.
+			// constantly hearing "Who is rem?" jokes, and being isekai'd into Re: Zero as Subaru.
 
 			currentSpeed = baseSpeed;
 			inputVector = Vector2.Zero;
@@ -415,7 +415,7 @@ namespace rz_frzbn.Characters.Player{
 						animationPlayer.Play("ATTACK");
 						break;
 					default:
-						animationPlayer.Play("ATTACK"); //TODO: Remove this
+						//animationPlayer.Play("ATTACK"); //TODO: Remove this
 						break;
 				}
 			}
