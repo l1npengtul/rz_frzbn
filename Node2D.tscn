@@ -9,6 +9,7 @@ extents = Vector2( 103, 38 )
 [node name="Node2D" type="Node2D"]
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
+entityType = 0
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 position = Vector2( -315, -125 )

@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Text;
 using rz_frzbn.Singletons.utils;
+using rz_frzbn.Singletons.InvItems.Items;
 
 namespace rz_frzbn.Characters.BaseCharacter{
     
@@ -17,6 +18,9 @@ namespace rz_frzbn.Characters.BaseCharacter{
         [Export]
         protected EntityType entityType = EntityType.UNUSED;
 
+        // Inventory
+        
+
         // Nodes
         protected RayCast2D interactCast;
         protected AnimationPlayer animationPlayer;
@@ -25,6 +29,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
             interactCast = GetNode<RayCast2D>("InteractCast");
             animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
             physicsTween = GetNode<Tween>("PhysicsTween");
+            assignToGroup(this.entityType);
         }
 
         // Movement Related
@@ -62,6 +67,8 @@ namespace rz_frzbn.Characters.BaseCharacter{
 
         protected StringBuilder newAnim = new StringBuilder("", 50);
 
+
+       // protected 
 
         public enum AttackType{
 			MAGE_TRIBOLT,
@@ -240,35 +247,6 @@ namespace rz_frzbn.Characters.BaseCharacter{
             ySlopeModifier = ys;
             slopeVec.x = xs;
             slopeVec.y = ys;
-            /*float setX = 0.0F;
-            float setY = 0.0F;
-            switch(slopeDir){
-                // No Direction
-                case -1:
-                    onSlope = false;
-                    break;
-                // North
-                case 0:
-                    setY = -1.0F;
-                    setX = 0.0F;
-                    break;
-                // East
-                case 1:
-                    setY = 0.0F;
-                    setX = 1.0F;
-                    break;
-                // South
-                case 2:
-                    setY = 1.0F;
-                    setX = 0.0F;
-                    break;
-                // West
-                case 3:
-                    setY = 0.0F;
-                    setX = -1.0F;
-                    break;
-            }
-            slopeDir = slopedir;*/
             onSlope = true;
         }
         public void exitSlope(){
@@ -287,7 +265,6 @@ namespace rz_frzbn.Characters.BaseCharacter{
         protected void playAnimation(string animationName, ANGLES Angles){
             newAnim.Insert(0, animationName);
             
-            // TODO: Change to StringBuilder
             switch(Angles){
                 case ANGLES.NORTH:
                     newAnim.Append("_NORTH");

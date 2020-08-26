@@ -16,7 +16,6 @@ namespace rz_frzbn.Characters.Player{
 		// All variables related to movement
 		private Vector2 inputVector = new Vector2(0.0F, 0.0F);
 
-
 		// Player Inventory related Variables
 
 		// Boolean to see if AimMode is enabled. In aim mode, the character will follow the crosshair
@@ -195,7 +194,6 @@ namespace rz_frzbn.Characters.Player{
 			else {
 				rotatePlayer(Mathf.Deg2Rad(inputVecAngle) + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
 				GD.Print(inputVecAngle + "a");
-
 			}
 			movementVector = movementVector.MoveToward(inputVector * maxSpeed, accelerationMultiplier * delta);
 			MoveAndSlide(movementVector);
@@ -320,19 +318,19 @@ namespace rz_frzbn.Characters.Player{
 			else if((degrees < -157.5)){
 				toAngle = ANGLES.NORTH;
 			}
-			else if ( (degrees < -112.5)){
+			else if ((degrees < -112.5)){
 				toAngle = ANGLES.NORTHEAST;
 			}
-			else if ( (degrees < -67.5)){
+			else if ((degrees < -67.5)){
 				toAngle = ANGLES.EAST;
 			}
-			else if ( (degrees < -22.5)){
+			else if ((degrees < -22.5)){
 				toAngle = ANGLES.SOUTHEAST;
 			}
 			else if ((degrees < 22.5)){
 				toAngle = ANGLES.SOUTH;
 			}
-			else if ( (degrees < 67.5)){
+			else if ((degrees < 67.5)){
 				toAngle = ANGLES.SOUTHWEST;
 			}
 			// Note that 90 can also be -270, so we also have to check for that
