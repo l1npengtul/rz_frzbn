@@ -4,13 +4,13 @@ using rz_frzbn.Singletons.utils;
 
 namespace rz_frzbn.Singletons.InvItems.Items{
     public class ItemMaterial : Godot.Node2D{ // FIXME: Change to a more sensible option for a inventory item e.g. child of canvasitem
-        public bool isMoveable;
-        public string gamePath; // In-game representation of the item.
-        public string iconPath; // String to in game node to spawn.
-        public ItemType itemType;
-        public ItemRarity itemRarity;
-        public ItemID itemID;
-        public string itemDescID;
+        public bool isMoveable {get; set;}
+        public string gamePath {get; set;}// In-game representation of the item.
+        public string iconPath {get; set;} // String to in game node to spawn.
+        public ItemType itemType {get; set;}
+        public ItemRarity itemRarity {get; set;}
+        public ItemID itemID {get; set;}
+        public string itemDescID {get; set;}
 
 
         

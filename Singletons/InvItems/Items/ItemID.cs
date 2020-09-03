@@ -66,7 +66,9 @@ namespace rz_frzbn.Singletons.InvItems.Items{
     }
 
     public enum ItemType {
-        WEAPON,
+        WEAPON_MELEE,
+        WEAPON_RANGED,
+        WEAPON_MAGE,
         CONSUMABLE_FOOD,
         CONSUMABLE_POTION,
         CONSUMABLE_CURRENCY,

@@ -14,24 +14,21 @@ namespace rz_frzbn.Characters.BaseCharacter{
         NPC,
         UNUSED,
     }
+
+
     public class BaseCharacter : KinematicBody2D{
         [Export]
         protected EntityType entityType = EntityType.UNUSED;
-
-        // Inventory
-        
 
         // Nodes
         protected RayCast2D interactCast;
         protected AnimationPlayer animationPlayer;
         protected Tween physicsTween;
-        public override void _Ready(){
-            interactCast = GetNode<RayCast2D>("InteractCast");
-            animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
-            physicsTween = GetNode<Tween>("PhysicsTween");
-            assignToGroup(this.entityType);
-        }
+        protected Position2D spawnPos;
 
+        // Hotbar
+        protected HotbarItems currentItem = HotbarItems.NONE;
+        
         // Movement Related
         protected Vector2 movementVector = new Vector2(0.0F,0.0F);
         protected const float frictionMultiplier = 7000.0F;
@@ -88,6 +85,7 @@ namespace rz_frzbn.Characters.BaseCharacter{
 			ROLL,
             STAGGER,
             ATTACK_MAGE,
+            ATTACK_SHIELD,
             ATTACK_RANGED,
             ATTACK_MELEE,
             //TALK,
@@ -111,14 +109,17 @@ namespace rz_frzbn.Characters.BaseCharacter{
 				case STATES.ATTACK_MAGE:
 					SetPhysicsProcess(true);
 					break;
+                case STATES.ATTACK_SHIELD:
+					SetPhysicsProcess(true);
+					break;
 				case STATES.ROLL:
 					SetPhysicsProcess(true);
 					break;
 				case STATES.MOVE:
 					onBoard = false;
 					break;
-				
 			}
+
 			// Get the new state
 			switch (toState){
 				case STATES.IDLE:
@@ -159,6 +160,10 @@ namespace rz_frzbn.Characters.BaseCharacter{
 					//aniPlayer.Play("IDLE");
 					SetPhysicsProcess(false);
 					this.attack(AttackType.MAGE_TRIBOLT);
+					break;
+                case STATES.ATTACK_SHIELD:
+					SetPhysicsProcess(false);
+					this.attack(AttackType.MAGE_SHIELD);
 					break;
 				case STATES.BOARD:
 					onBoard = true;
@@ -339,7 +344,20 @@ namespace rz_frzbn.Characters.BaseCharacter{
                     throw new Exceptions.IllegalStateException("UNUSED for EntityType");
             }
         }
-        
-    }
+        public virtual void SetupNodes(){
+            interactCast = GetNode<RayCast2D>("InteractCast");
+            animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
+            physicsTween = GetNode<Tween>("PhysicsTween");
+            spawnPos = GetNode<Position2D>("InteractCast/Spawn");
+        }
 
+        public virtual void UpdateItemHeld(HotbarItems to){
+            if (this.currentItem == to){
+                this.currentItem = HotbarItems.NONE;
+            }
+            else{
+                this.currentItem = to;
+            }
+        }
+    }
 }

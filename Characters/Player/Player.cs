@@ -1,11 +1,15 @@
 using Godot;
 using System;
 using System.Linq;
+using rz_frzbn.Characters.BaseCharacter;
+using rz_frzbn.Singletons.InvItems.Items;
 
 // Hours with dadadada tenshi on loop: i dont fucking know anymore help
 // I have achived a new state of dadadada tenshi 
 // I have heard it so many times that the song is constantly playing in my head on loop
 // Now every living moment is dadadada tenshi. - Aug 7 2020-2021
+// I have reached an even higher level of dadadada tenshi: I have achived 120+ Concurrent streams of dadadada tenshi - Aug 27 2020-2021
+// Proof: https://cdn.discordapp.com/attachments/217253743668756480/748395551678267422/2020-20210827_131300.mp4
 // TODO: Cure disease using a noose
 
 namespace rz_frzbn.Characters.Player{
@@ -17,6 +21,13 @@ namespace rz_frzbn.Characters.Player{
 		private Vector2 inputVector = new Vector2(0.0F, 0.0F);
 
 		// Player Inventory related Variables
+
+		private bool HasGottenCrossbow = false;
+		private short CrossbowBolts = 0;
+
+		private short Food = 0;
+		private short Coins = 0;
+
 
 		// Boolean to see if AimMode is enabled. In aim mode, the character will follow the crosshair
 		private new bool aimMode = false;
@@ -30,18 +41,25 @@ namespace rz_frzbn.Characters.Player{
 		private Camera2D camera;
 		private Timer idleLongTimer;
 		private new RayCast2D interactCast;
+		private new Position2D spawnPos;
 
-		
+		private 
 		
 
 		// Non FSM State Variables
 		// Angle FSM
 		public override void _Ready(){
+			this.SetupNodes();
+			this.assignToGroup(EntityType.Player);
 			animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
 			camera = GetNode<Camera2D>("Camera");
 			idleLongTimer = GetNode<Timer>("Timers/IdleLongTimer");
 			interactCast = GetNode<RayCast2D>("InteractCast");
 			tween = GetNode<Tween>("Tween");
+			spawnPos = GetNode<Position2D>("InteractCast/Spawn");
+
+			//
+			
 		}
 
 		private void getMovementInput(float delta){ 
@@ -193,7 +211,7 @@ namespace rz_frzbn.Characters.Player{
 			}
 			else {
 				rotatePlayer(Mathf.Deg2Rad(inputVecAngle) + Godot.Mathf.Deg2Rad(-90.0F), interactCast);
-				GD.Print(inputVecAngle + "a");
+				//GD.Print(inputVecAngle + "a");
 			}
 			movementVector = movementVector.MoveToward(inputVector * maxSpeed, accelerationMultiplier * delta);
 			MoveAndSlide(movementVector);
@@ -235,11 +253,12 @@ namespace rz_frzbn.Characters.Player{
 			}
 			//MoveAndSlide(initialVector);
 			changeState(STATES.IDLE);
-			GD.Print(currentState);
+			//GD.Print(currentState);
 		}
 
 		public override void _Input(InputEvent inputEvent){
-
+			// We cant use `switch` here because `IsActionPressed` returns a bool and there is no other way (except doing all input key filtering yourself)
+			// that lets us use `switch` statements. 
 			if(inputEvent.IsActionPressed("ui_jump") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE, STATES.BOARD}.Contains(currentState))){
 				changeState(STATES.JUMP);
 			}
@@ -249,14 +268,37 @@ namespace rz_frzbn.Characters.Player{
 			}
 			else if (inputEvent.IsActionPressed("ui_attack") && (new [] {STATES.IDLE, STATES.IDLE_LONG, STATES.MOVE}.Contains(currentState))){
 				// TODO: Do hotbar check to call correct change state
-				GD.Print("attacc");
-				changeState(STATES.ATTACK_MAGE);
+				//GD.Print("attacc");
+				switch(this.currentItem) {
+					case HotbarItems.NONE:
+						break;
+					case HotbarItems.ICEBOLT:
+						changeState(STATES.ATTACK_MAGE);
+						break;
+					case HotbarItems.SHIELD:
+						changeState(STATES.ATTACK_SHIELD);
+						break;
+				}
+			}
+
+			// Check for UI inputs
+			// Please god forgive me
+
+			if(inputEvent.IsActionPressed("ui_1")){
+				UpdateItemHeld(HotbarItems.ICEBOLT);
+			}
+			else if (inputEvent.IsActionPressed("ui_2")){
+				UpdateItemHeld(HotbarItems.SHIELD);
+			}
+			else if (inputEvent.IsActionPressed("ui_3")){
+				if (this.HasGottenCrossbow){
+					UpdateItemHeld(HotbarItems.CROSSBOW);
+				}
 			}
 		}
 
 		public override void _PhysicsProcess(float delta){
-			// ~~TODO: Consolidate into one function for finer control over board states~~ NVM just put board off anim in 
-			// ToIdle state machine condition
+			// TODO:just put board off anim in ToIdle state machine condition
 			if (!onSlope){
 				getMovementInput(delta);
 			}
@@ -405,11 +447,19 @@ namespace rz_frzbn.Characters.Player{
 				switch(attackType){
 					case AttackType.MAGE_TRIBOLT:
 						animationPlayer.Play("ATTACK");
+						//animationPlayer.Play("CAST");
+
+						this.spawnPos
+
 						break;
 					case AttackType.MAGE_SHIELD:
 						animationPlayer.Play("ATTACK");
+						//animationPlayer.Play("ATTACK");
 						break;
 					case AttackType.RANGED_CROSSBOW:
+						animationPlayer.Play("ATTACK");
+						break;
+					case AttackType.MELEE_KICK:
 						animationPlayer.Play("ATTACK");
 						break;
 					default:
