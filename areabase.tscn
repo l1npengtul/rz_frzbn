@@ -1,0 +1,51 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://Environment/Mountains/Slope/Slope.cs" type="Script" id=1]
+[ext_resource path="res://Characters/Player/Player.tscn" type="PackedScene" id=2]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 1097.71, 1108.68 )
+
+[node name="Node2D" type="Node2D"]
+
+[node name="Player" parent="." instance=ExtResource( 2 )]
+CurrentEntityType = 0
+
+[node name="Area2D" type="Area2D" parent="."]
+position = Vector2( 2768.62, -274.405 )
+script = ExtResource( 1 )
+SpeedMultiplier = 0.8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+position = Vector2( 1201.64, 74.9153 )
+shape = SubResource( 1 )
+
+[node name="Area2D2" type="Area2D" parent="."]
+position = Vector2( 247.828, 2474.97 )
+script = ExtResource( 1 )
+SpeedMultiplier = 0.8
+SlopeDir = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D2"]
+position = Vector2( 1201.64, 74.9153 )
+shape = SubResource( 1 )
+
+[node name="Area2D3" type="Area2D" parent="."]
+position = Vector2( -939.548, -1950.7 )
+script = ExtResource( 1 )
+SpeedMultiplier = 0.8
+SlopeDir = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D3"]
+position = Vector2( 1201.64, 74.9153 )
+shape = SubResource( 1 )
+
+[node name="Area2D4" type="Area2D" parent="."]
+position = Vector2( -2698.39, 1649.53 )
+script = ExtResource( 1 )
+SpeedMultiplier = 0.8
+SlopeDir = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D4"]
+position = Vector2( 1201.64, 74.9153 )
+shape = SubResource( 1 )

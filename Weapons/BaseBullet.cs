@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-namespace rz_frzbn.Weapons.BaseBullet{
+namespace rz_frzbn.Weapons.basebullet{
     public enum BulletType {
         ICEBOLT,
         ARROW,
@@ -15,7 +15,7 @@ namespace rz_frzbn.Weapons.BaseBullet{
         [Export]
         protected BulletType bulletType = BulletType.MAGEOTHER;
         [Export]
-        protected int BulletVelocity = 100;
+        protected float BulletVelocity = 1000.0F;
         [Export]
         protected int BulletLastTime = 10;
 
@@ -30,10 +30,11 @@ namespace rz_frzbn.Weapons.BaseBullet{
 
         protected bool isTimerExpired = false;
         protected bool isNotVisible = false;
-        protected bool toBreak_anim = false, toBreak_audio = false;
+        protected bool ToBreakAnim = false, ToBreakAudio = false;
+        protected bool HasHit = false;
 
         public override void _Ready(){
-            SetProcess(false);
+            //SetProcess(false);
             this.timer = GetNode<Timer>("Timer");
             //this.visibility = GetNode<VisibilityNotifier2D>("VisibilityNotifier2D");
             this.audio = GetNode<AudioStreamPlayer2D>("AudioStreamPlayer2D");
@@ -44,51 +45,55 @@ namespace rz_frzbn.Weapons.BaseBullet{
         }
 
         // The reason that this is here instead of `_Init` is because Godot messes with constructors. 
-        public void setBullet(float rot){
+        public void SetBullet(Vector2 pos, float rot){
             this.Rotation = rot;
-            moveTo = rz_frzbn.Singletons.Math.Vector.VectorMathF.VectorMathF.fromAngleRadians(rot);
-            SetProcess(true);
+            moveTo = rz_frzbn.Singletons.Math.Vector.VectorMathF.VectorMathF.fromAngleRadians(rot + Mathf.Deg2Rad(90.0F)).Normalized();
+            GD.Print(moveTo.x);
+            GD.Print(moveTo.y);
+            this.GlobalPosition = pos;
+            //SetProcess(true);
         }
 
         public override void _Process(float delta){
-            setTo.x = this.Position.x + moveTo.x * (float)BulletVelocity;
-            setTo.y = this.Position.y + moveTo.y * (float)BulletVelocity;
-            this.Position = setTo;
-
             if(isTimerExpired){
-                // No Programmer-Chan, you're getting this all wrong! We dont **kill** objects, we ***FREE*** them
-                sprite.Play("BREAK");
-                // this.sprite.Play("BREAK");
-                toBreak_audio = true;
+                ToBreakAnim = true;
             }
-            
-            if(toBreak_anim && toBreak_audio){
+            else {
+                setTo.x = this.Position.x + moveTo.x * BulletVelocity * delta;
+                setTo.y = this.Position.y + moveTo.y  * BulletVelocity * delta;
+                //GD.Print(setTo);
+                this.Position = setTo;
+            }
+
+            if(ToBreakAnim && HasHit){
+                // No Programmer-Chan, you're getting this all wrong! We dont **kill** objects, we ***FREE*** them
                 QueueFree();
             }
         }
 
         public void _on_BaseBullet_body_entered(Godot.Node body){
+            HasHit = true;
             // TODO: Sound effect
-            if(body.HasMethod("takeDamage")){
+            if(body.HasMethod("TakeDamage")){
                 // this.audio.Play("HitBody:);
-                // this.sprite.Play("BREAK");
-                body.Call("takeDamage", (float)this.BulletDamage);
+                body.Call("TakeDamage", (float)this.BulletDamage);
             } 
-            else{
-                // this.audio.Play("HitOther:);
-            }
+            this.sprite.Play("BREAK");
         }
 
         public void _on_AudioStreamPlayer2D_finished(){
-            toBreak_audio = true;
+            ToBreakAudio = true;
         }
 
         public void _on_Timer_timeout(){
+            HasHit = true;
             this.isTimerExpired = true;
         }
 
         public void _on_AnimatedSprite_animation_finished(){
-            toBreak_anim = true;
+            if (HasHit){
+                ToBreakAnim = true;
+            }
         }
     }
 }

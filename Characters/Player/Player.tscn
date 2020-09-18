@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://Characters/Character.tscn" type="PackedScene" id=1]
 [ext_resource path="res://Characters/Player/Player.cs" type="Script" id=2]
+[ext_resource path="res://Characters/Player/GUI/HUD.tscn" type="PackedScene" id=3]
 
 [sub_resource type="Animation" id=1]
 resource_name = "ATTACK"
@@ -9,20 +10,37 @@ resource_name = "ATTACK"
 [sub_resource type="Animation" id=2]
 resource_name = "IDLE"
 
+[sub_resource type="Animation" id=3]
+resource_name = "RickRoll"
+
 [node name="Player" instance=ExtResource( 1 )]
 script = ExtResource( 2 )
 
 [node name="Camera" type="Camera2D" parent="." index="0"]
 current = true
 
+[node name="HUD" parent="Camera" index="0" instance=ExtResource( 3 )]
+margin_left = -960.0
+margin_top = -536.0
+margin_right = 960.0
+margin_bottom = -418.0
+
 [node name="Sprite" parent="." index="2"]
 self_modulate = Color( 0.87451, 0, 1, 1 )
+
+[node name="Spawn" parent="InteractCast" index="0"]
+position = Vector2( 0, 136 )
 
 [node name="AnimationPlayer" parent="." index="6"]
 anims/ATTACK = SubResource( 1 )
 anims/IDLE = SubResource( 2 )
+anims/RickRoll = SubResource( 3 )
 
 [node name="IdleLongTimer" type="Timer" parent="Timers" index="1"]
+[connection signal="AmmoChangedSignal" from="." to="Camera/HUD" method="_on_Player_AmmoChangedSignal"]
+[connection signal="HPChangedSignal" from="." to="Camera/HUD" method="_on_Player_HPChangedSignal"]
+[connection signal="MPChangedSignal" from="." to="Camera/HUD" method="_on_Player_MPChangedSignal"]
+[connection signal="WeaponChangedSignal" from="." to="Camera/HUD" method="_on_Player_WeaponChangedSignal"]
 [connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
 [connection signal="tween_completed" from="PhysicsTween" to="." method="_on_PhysicsTween_tween_completed"]
 [connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]

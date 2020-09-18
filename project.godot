@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="RZ_FRZBN"
-run/main_scene="res://Node2D.tscn"
+run/main_scene="res://areabase.tscn"
 config/icon="res://icon.png"
 
 [display]
@@ -169,6 +169,11 @@ translations=PoolStringArray( "res://translat/translation/rzfrzbn_translations.e
 
 file_logging/enable_file_logging=true
 
+[physics]
+
+2d/thread_model=2
+
 [rendering]
 
+threads/thread_model=2
 environment/default_environment="res://default_env.tres"

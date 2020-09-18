@@ -12,5 +12,6 @@ namespace rz_frzbn.Singletons.utils
                 System.Runtime.Serialization.SerializationInfo info,
                 System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
         }
+        
     }
 }
