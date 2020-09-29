@@ -4,7 +4,6 @@
 [ext_resource path="res://Weapons/Mage/Sheild/Sheild.cs" type="Script" id=2]
 [ext_resource path="res://default.ogg" type="AudioStream" id=3]
 
-
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 32, 8 )
 
@@ -12,12 +11,12 @@ extents = Vector2( 32, 8 )
 animations = [ {
 "frames": [ ExtResource( 1 ) ],
 "loop": true,
-"name": "BREAK",
+"name": "IDLE",
 "speed": 5.0
 }, {
 "frames": [ ExtResource( 1 ) ],
 "loop": true,
-"name": "IDLE",
+"name": "BREAK",
 "speed": 5.0
 } ]
 

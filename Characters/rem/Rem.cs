@@ -11,4 +11,9 @@ public class Rem : BaseCharacter {
         string iLove = "emilia";
         return iLove;
     }
+
+    public static void sleep(){
+        //haha rem go coma strat but she loses   
+        return;
+    }
 }

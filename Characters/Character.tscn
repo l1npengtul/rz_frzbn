@@ -30,3 +30,13 @@ playback_process_mode = 0
 [node name="Timers" type="Node2D" parent="."]
 
 [node name="Timer" type="Timer" parent="Timers"]
+
+[node name="HurtTimer" type="Timer" parent="Timers"]
+wait_time = 0.2
+
+[node name="AttackCooldownTimer" type="Timer" parent="Timers"]
+wait_time = 0.15
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_AnimationPlayer_animation_finished"]
+[connection signal="timeout" from="Timers/Timer" to="." method="_on_Timer_timeout"]
+[connection signal="timeout" from="Timers/HurtTimer" to="." method="_on_HurtTimer_timeout"]
+[connection signal="timeout" from="Timers/AttackCooldownTimer" to="." method="_on_AttackCooldownTimer_timeout"]

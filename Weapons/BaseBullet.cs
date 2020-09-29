@@ -77,7 +77,7 @@ namespace rz_frzbn.Weapons.basebullet{
             if(body.HasMethod("TakeDamage")){
                 // this.audio.Play("HitBody:);
                 body.Call("TakeDamage", (float)this.BulletDamage);
-            } 
+            }
             this.sprite.Play("BREAK");
         }
 

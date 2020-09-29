@@ -41,7 +41,7 @@ position = Vector2( 1201.64, 74.9153 )
 shape = SubResource( 1 )
 
 [node name="Area2D4" type="Area2D" parent="."]
-position = Vector2( -2698.39, 1649.53 )
+position = Vector2( -2699.39, 1652.53 )
 script = ExtResource( 1 )
 SpeedMultiplier = 0.8
 SlopeDir = 3

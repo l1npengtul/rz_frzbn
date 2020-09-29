@@ -15,3 +15,4 @@ namespace rz_frzbn.Singletons.utils
         
     }
 }
+

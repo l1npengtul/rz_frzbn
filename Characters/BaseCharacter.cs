@@ -9,11 +9,14 @@ using rz_frzbn.Singletons.Character.attacktype;
 using rz_frzbn.Singletons.Character.states;
 using rz_frzbn.Singletons.Character.entitytype;
 using rz_frzbn.Singletons.Character.Angles;
+using rz_frzbn.Environment.Mountains.Slope;
 
 
 
 // With the release of "Complete Abandonment Announcement", my life can finally be put as a list of Nanawo Akari songs
 // Discomminication Alien -> Dadadada Tenshi -> Fairy Tale Hell Asteroid -> I WANT TO BE HAPPY -> I'm not scared -> Reset Set -> Complete Abandonment Announcement 
+
+// Note that the `Player` referred to in this script does not refer to the player, but rather the Node its controlling.
 
 namespace rz_frzbn.Characters.basecharacter{
     
@@ -27,6 +30,9 @@ namespace rz_frzbn.Characters.basecharacter{
         protected AnimationPlayer AnimationPlayer;
         protected Tween PhysicsTween;
         protected Position2D SpawnPos;
+        protected Timer timer;
+        protected Timer AttackCooldownTimer;
+        protected Timer DamageTimer;
 
         // Projectiles - Load
         protected PackedScene IceBolt = ResourceLoader.Load<PackedScene>("res://Weapons/Mage/IceBolt/IceBolt.tscn");
@@ -38,6 +44,7 @@ namespace rz_frzbn.Characters.basecharacter{
         
         // Movement Related
         protected Vector2 MovementVector = new Vector2(0.0F,0.0F);
+        protected Vector2 InputVector = new Vector2(0.0F,0.0F);
         protected const float FrictionMultiplier = 7000.0F;
         protected const float AccelerationMultiplier = 7000.0F;
         protected const float RollDuration = 0.25F;
@@ -45,22 +52,35 @@ namespace rz_frzbn.Characters.basecharacter{
         protected float RunSpeedMultiplier = 1.6F;
         protected float SlopeModifierX = 0.0F;
         protected float SlopeModifierY = 0.0F;
+        protected int SlopeDir = -1;
+        protected SlopeType SlopeDirType = SlopeType.NORTH;
+        protected Vector2 SlopeVec = new Vector2(0.0F,0.0F);
         protected const int BaseSpeed = 600;
         protected const int MaxSpeed = 700;
         protected const int MaxSpeedOnSlope = 900;
         protected const int MaxSpeedOnSlopeWhileRunning = 1100;
         protected const int MaxSpeedOnBoard = 1400;
         protected const int RollSpeed = 650;
+        protected const int KnockBackMultiplier = 1000;
+        protected const float KnockBackDuration = 0.15F;
+        protected bool IsBeingDamaged = false;
+        protected float AttackCooldown = 0.15F;
+        protected float DamageCooldown = 0.15F;
         protected int CurrentSpeed = 600;
-        protected int SlopeDir = -1;
-        protected Vector2 SlopeVec = new Vector2(0.0F,0.0F);
+
+        protected float PreviousAngleRadians = 0;
+		protected Angles PreviousAngleAngle = Angles.NORTH;
+
+        protected States[] ValidMoveStates = {States.IDLE, States.IDLE_LONG, States.MOVE};
+        protected States[] ValidJumpStates = {States.IDLE, States.IDLE_LONG, States.MOVE, States.JUMP};
+        
 
         protected bool AimMode = false;
         
         // FSM State Modifiers
         protected bool OnSlope = false;
         protected bool OnBoard = false;
-
+        
 
         // HP and Fighting
         [Export]
@@ -118,6 +138,10 @@ namespace rz_frzbn.Characters.basecharacter{
 				case States.MOVE:
 					OnBoard = false;
 					break;
+                case States.STAGGER:
+                    SetPhysicsProcess(true);
+                    this.IsBeingDamaged = false;
+                    break;
 			}
 
 			// Get the new state
@@ -147,11 +171,10 @@ namespace rz_frzbn.Characters.basecharacter{
 					// TODO: Implement jump (Y movement UP, reduced air control by set margain)
 					//aniPlayer.Play("IDLE");
 					break;
-				case States.STAGGER:
-					// TODO: Only when hit 
-					// Play knockback anim
-					// Give IFrames
-					//aniPlayer.Play("IDLE");
+				case States.STAGGER: // State for STUN/KNOCKBACK
+					this.IsBeingDamaged = true;
+                    this.SetPhysicsProcess(false);
+                    this.PlayAnimation("STAGGER", this.CurrentAngle);
 					break;
 				case States.ATTACK_MAGE:
 					// So here is the thing:
@@ -181,7 +204,7 @@ namespace rz_frzbn.Characters.basecharacter{
         // Angle
 	    protected Angles CurrentAngle = Angles.NORTH;
 
-        public void RotatePlayer(float radians, RayCast2D castRotater){
+        public virtual void RotatePlayer(float radians, RayCast2D castRotater){
 		//GD.Print(radians);
             float degrees = (float) System.Math.Round(Godot.Mathf.Rad2Deg(radians), 1);
             //GD.Print(degrees);
@@ -234,12 +257,13 @@ namespace rz_frzbn.Characters.basecharacter{
 	    }
 
 
-        public void EnterSlope(float xs, float ys){
+        public void EnterSlope(float xs, float ys, SlopeType dir){
             GD.Print("slope enter");
             SlopeModifierX = xs;
             SlopeModifierY = ys;
             SlopeVec.x = xs;
             SlopeVec.y = ys;
+            SlopeDirType = dir;
             OnSlope = true;
         }
         
@@ -290,11 +314,42 @@ namespace rz_frzbn.Characters.basecharacter{
         
         public void TakeDamage(float damage){
             // TODO: Take into account damage vulnarabilities
-            this.HealthPoints += damage * -1;
-            if (this.HealthPoints <= 0.0F){
-                ChangeState(States.DYING);
+            if (!this.IsBeingDamaged){
+                this.HealthPoints += damage * -1;
+                if (this.HealthPoints <= 0.0F){
+                    ChangeState(States.DYING);
+                }
+                EmitSignal("HPChangedSignal", this.HealthPoints);
             }
-            EmitSignal("HPChangedSignal", this.HealthPoints);
+        }
+        public void TakeDamageWithKB(float damage){
+            // TODO: Take into account damage vulnarabilities
+            if (!this.IsBeingDamaged){
+                this.HealthPoints += damage * -1;
+                if (this.HealthPoints <= 0.0F){
+                    ChangeState(States.DYING);
+                }
+                else {
+                    ChangeState(States.STAGGER);
+                    this.TakeKnockback(damage*64.0F);
+                }
+                EmitSignal("HPChangedSignal", this.HealthPoints);
+            }
+        }
+        public void TakeDamageWithStun(float damage){
+            // TODO: Take into account damage vulnarabilities
+            if (!this.IsBeingDamaged){
+                this.HealthPoints += damage * -1;
+                if (this.HealthPoints <= 0.0F){
+                    ChangeState(States.DYING);
+                }
+                else {
+                    ChangeState(States.STAGGER);
+                    this.Stun(damage*64.0F);
+                    DamageTimer.Start();
+                }
+                EmitSignal("HPChangedSignal", this.HealthPoints);
+            }
         }
 
         public void HealDamage(float heal){
@@ -307,10 +362,12 @@ namespace rz_frzbn.Characters.basecharacter{
 
         public bool UseMana(float mana){
             if (this.ManaPoints - mana < 0.0F){
+                EmitSignal(nameof(MPChangedSignal), this.ManaPoints);
                 return false;
             }
             else{
                 this.ManaPoints -= mana;
+                EmitSignal(nameof(MPChangedSignal), this.ManaPoints);
                 return true;
             }
         }
@@ -320,21 +377,23 @@ namespace rz_frzbn.Characters.basecharacter{
             if (this.ManaPoints > MaxManaPoints){
                 this.ManaPoints = MaxManaPoints;
             }
+            EmitSignal(nameof(MPChangedSignal), this.ManaPoints);
         }
 
         protected virtual void Attack(AttackType? attackType){
             // Do Nothing! Let each class that inherits `override` and define their own behaviour!
         }
-        public void TakeKnockback(float angle, float mag){
 
+        protected void TakeKnockback(float mag){
+            float angleToKB = this.MovementVector.Angle() + Mathf.Deg2Rad(180) + Godot.Mathf.Deg2Rad(-90.0F);
+            Vector2 kbVector = new Vector2(Mathf.Sin(angleToKB), Mathf.Cos(angleToKB));
+            kbVector.x *= mag;
+            kbVector.y *= mag;
+            PhysicsTween.InterpolateMethod(this, nameof(MoveAndSlide), kbVector, kbVector, KnockBackDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
         }
 
-        public void TakeKnockback(float mag){
-            float angleToKB = this.MovementVector.Angle() + Mathf.Deg2Rad(180);
-            // Vector2 
-        }
-
-        public void Stun(float duration){
+        protected void Stun(float duration){
+            // this.AnimationPlayer.Play("STUN"); FIXME: Implement `STUN` animation
             
         }
 
@@ -356,7 +415,7 @@ namespace rz_frzbn.Characters.basecharacter{
                     this.AddToGroup("NPC");
                     break;
                 default:
-                    throw new Exceptions.IllegalStateException("UNUSED for EntityType");
+                    throw new InvalidOperationException("EntityType is not defined");
             }
         }
         public virtual void SetupNodes(){
@@ -364,9 +423,12 @@ namespace rz_frzbn.Characters.basecharacter{
             AnimationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
             PhysicsTween = GetNode<Tween>("PhysicsTween");
             SpawnPos = GetNode<Position2D>("InteractCast/Spawn");
+            AttackCooldownTimer = GetNode<Timer>("Timers/AttackCooldownTimer");
+            timer = GetNode<Timer>("Timers/Timer");
+            DamageTimer = GetNode<Timer>("Timers/HurtTimer");
         }
 
-        public virtual void UpdateItemHeld(HotbarItems to){
+        protected virtual void UpdateItemHeld(HotbarItems to){
             if (this.CurrentItem == to){
                 this.CurrentItem = HotbarItems.NONE;
             }
@@ -374,5 +436,104 @@ namespace rz_frzbn.Characters.basecharacter{
                 this.CurrentItem = to;
             }
         }
+
+        // This function expects to be called every frame.
+        public virtual void MoveActorWithInput(Vector2 input, float delta){
+            if (InputVector != Vector2.Zero){
+				MovementVector = MovementVector.MoveToward(InputVector * CurrentSpeed, AccelerationMultiplier * delta);
+			}
+			else{
+				MovementVector = MovementVector.MoveToward(Vector2.Zero, FrictionMultiplier * delta);
+			}
+			
+			if(InputVector == Vector2.Zero){
+				ChangeState(States.IDLE);
+			}
+
+			if(!AimMode){
+				if(!(InputVector == Vector2.Zero)){
+					RotatePlayer(InputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), InteractCast);
+				}
+			}
+			else{
+				Vector2 mousePos = GetGlobalMousePosition();
+				Vector2 globalPos = this.GlobalPosition;
+				RotatePlayer(Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(-90.0F), InteractCast);
+			}
+			//GD.Print(movementVector);
+			MovementVector.Clamped(MaxSpeed);
+			MovementVector = MoveAndSlide(MovementVector);
+        }
+
+        public virtual void MoveActorOnSlope(Vector2 ToVec, float delta, bool isRunning = false){
+            if (InputVector != Vector2.Zero){
+				MovementVector = MovementVector.MoveToward(InputVector * MaxSpeed, AccelerationMultiplier * delta);
+			}
+			else{
+				MovementVector = MovementVector.MoveToward(Vector2.Zero, FrictionMultiplier * delta);
+			}
+            if(InputVector != Vector2.Zero){
+                RotatePlayer(InputVector.Normalized().Angle() + Godot.Mathf.Deg2Rad(-90.0F), InteractCast);
+            }
+			
+			if (isRunning){
+				MovementVector.Clamped(MaxSpeedOnSlope);
+			}
+			else {
+				MovementVector.Clamped(MaxSpeedOnSlopeWhileRunning);
+			}
+			MoveAndSlide(MovementVector);
+        }
+
+        public virtual void RollActor(Vector2 MoveDir){
+			float xDir = MoveDir.x;
+			float yDir = MoveDir.y;
+			
+
+			Vector2 initialVector = new Vector2(xDir * 50,yDir * 50);
+			MovementVector = Vector2.Zero;
+			PhysicsTween.InterpolateMethod(this, nameof(MoveAndSlide), initialVector, initialVector, RollDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
+			if (!PhysicsTween.IsActive()){
+				//GD.Print("start");
+				PhysicsTween.Start();
+			}
+			//MoveAndSlide(initialVector);
+			ChangeState(States.IDLE);
+			//GD.Print(currentState);
+		}
+
+        public void _on_HurtTimer_timeout(){
+
+        }
+
+        public void _on_AttackCooldownTimer_timeout(){
+
+        }
+
+
+		public virtual void _on_AnimationPlayer_animation_finished(string AnimName){
+			GD.Print("here");
+			/*
+            ChangeState(States.IDLE);
+			if (AnimName == "ATTACK"){
+				this.Rotation = PreviousAngleRadians;
+				CurrentAngle = PreviousAngleAngle;
+				InteractCast.RotationDegrees = ((float) CurrentAngle) * 45.0F + 180.0F;
+			}
+            */
+            ChangeState(States.IDLE);
+            switch(AnimName){
+                case "ATTACK":
+                    this.Rotation = PreviousAngleRadians;
+                    CurrentAngle = PreviousAngleAngle;
+                    InteractCast.RotationDegrees = ((float) CurrentAngle) * 45.0F + 180.0F;
+                    ChangeState(States.IDLE);
+                    break;
+                case "STAGGER":
+                    ChangeState(States.IDLE);
+                    break;
+            }
+		}
+
     }
 }

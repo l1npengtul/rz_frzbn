@@ -1,17 +1,9 @@
 using Godot;
 using System;
-
+using rz_frzbn.Environment.Mountains.Slope;
 // This script controls the Area 2D that controls the slope. It expects a CollisionShape/Polygon under it and autmatically attaches signals to itself
 
 public class Slope : Area2D {   
-    private enum SlopeType {
-        NORTH,
-        EAST,
-        SOUTH,
-        WEST
-    }
-    
-
     private float xSpeed = 0.0F;
     private float ySpeed = 0.0F;
     
@@ -54,7 +46,7 @@ public class Slope : Area2D {
     public void _on_Area2D_body_entered(Node body){
         GD.Print("a");
         if (body.HasMethod("EnterSlope")){
-            body.Call("EnterSlope",xSpeed, ySpeed);
+            body.Call("EnterSlope", xSpeed, ySpeed, SlopeDir);
         }
     }
 

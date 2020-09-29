@@ -7,6 +7,7 @@ using rz_frzbn.Singletons.Character.attacktype;
 using rz_frzbn.Singletons.Character.states;
 using rz_frzbn.Singletons.Character.entitytype;
 using rz_frzbn.Singletons.Character.Angles;
+using rz_frzbn.Environment.Mountains.Slope;
 
 
 // Hours with dadadada tenshi on loop: i dont fucking know anymore help
@@ -19,24 +20,25 @@ using rz_frzbn.Singletons.Character.Angles;
 
 namespace rz_frzbn.Characters.player{
 	public class Player : BaseCharacter {
-		private new int HealthPoints = 10;
-		private new int ManaPoints = 20;
+		private new float HealthPoints = 100;
+		private new float ManaPoints = 200;
 
 		// All variables related to movement
-		private Vector2 InputVector = new Vector2(0.0F, 0.0F);
+		private new Vector2 InputVector = new Vector2(0.0F, 0.0F);
+		private Vector2 RawInputVector = new Vector2(0.0F,0.0F);
 
 		// Player Inventory related Variables
 		private bool HasGottenCrossbow = false;
 		private short CrossbowBolts = 0;
 
-		private short Food = 0;
-		private short Coins = 0;
+		private int Food = 0;
+		private int Coins = 0;
 
 
 		// Boolean to see if AimMode is enabled. In aim mode, the character will follow the crosshair
 		private new bool AimMode = false;
-		private float PreviousAngleRadians = 0;
-		private Angles PreviousAngleAngle = Angles.NORTH;
+		private new	float PreviousAngleRadians = 0;
+		private new Angles PreviousAngleAngle = Angles.NORTH;
 
 		// Nodes
 		private new AnimationPlayer AnimationPlayer;
@@ -94,14 +96,6 @@ namespace rz_frzbn.Characters.player{
 			}
 			InputVector = InputVector.Normalized();
 			
-			// Ive been trying for at least 3 days now to get rolling working. I give up, you win.
-			// HAHAHAAHAHAA FUCK YOU TWEENS I WIN INTO YOUR FUCKING TRASHCAN YOU GO LMAOOOOOOO I GOT ROLL WORKING YESYESYESYESYESYESYESYES
-			if (Input.IsActionPressed("ui_roll") && (new [] {States.IDLE, States.IDLE_LONG, States.MOVE}.Contains(currentState)) && !OnSlope){
-				ChangeState(States.ROLL);
-				CurrentSpeed = 0;
-				MovementVector = Vector2.Zero;
-				RollPlayer();
-			}
 
 			// TODO: implement more (roll, jump) so change to if/elif
 			switch (Input.IsActionPressed("ui_shift")){
@@ -137,29 +131,35 @@ namespace rz_frzbn.Characters.player{
 			MovementVector = MoveAndSlide(MovementVector);
 		}
 
+
 		private void GetMovementOnSlope(float delta){
 			InputVector = Vector2.Zero;
+			RawInputVector = Vector2.Zero;
 			
 			// Check for movement. We want a the character to move in as many ways as possible
 			
 			if(Input.IsActionPressed("ui_up")){
 				ChangeState(States.MOVE);
 				InputVector.y -= 1.0F + SlopeModifierY;
+				RawInputVector.y -= 1.0F ;
 			}
 
 			if(Input.IsActionPressed("ui_down")){
 				ChangeState(States.MOVE);
 				InputVector.y -= -1.0F + SlopeModifierY;
+				RawInputVector.y -= -1.0F;
 			}
 
 			if(Input.IsActionPressed("ui_left")){
 				ChangeState(States.MOVE);
 				InputVector.x -= 1.0F + SlopeModifierX;
+				RawInputVector.x -= 1.0F;
 			}
 
 			if(Input.IsActionPressed("ui_right")){
 				ChangeState(States.MOVE);			
 				InputVector.x -= -1.0F + SlopeModifierX;
+				RawInputVector.x -= -1.0F;
 			}
 
 			if (InputVector != Vector2.Zero){
@@ -179,9 +179,12 @@ namespace rz_frzbn.Characters.player{
 				}
 			}
 			else{
+				/*
 				Vector2 mousePos = GetGlobalMousePosition();
 				Vector2 globalPos = this.GlobalPosition;
 				RotatePlayer(Godot.Mathf.Atan2(mousePos.y - globalPos.y, mousePos.x - globalPos.x) + Godot.Mathf.Deg2Rad(-90.0F), InteractCast);
+				*/
+				RotatePlayer(RawInputVector.Angle(), this.InteractCast);
 			}
 			if (Input.IsActionPressed("ui_shift")){
 				MovementVector.Clamped(MaxSpeedOnSlope);
@@ -195,82 +198,89 @@ namespace rz_frzbn.Characters.player{
 		}
 
 		private void GetMovementOnBoard(float delta){
-			Vector2 globalMouse = GetGlobalMousePosition();
-			Vector2 localPos = this.GlobalPosition;
-			InputVector = new Vector2(globalMouse.x - localPos.x + SlopeModifierX, globalMouse.y - localPos.y + SlopeModifierY).Normalized();
-			float slopeModifierVector = new Vector2(SlopeModifierX,SlopeModifierY).Angle();
-			// Check if input direction 
-			float slvecangle = Mathf.Rad2Deg(SlopeVec.Angle());
-			GD.Print(slvecangle);
-			float inputVecAngle = Mathf.Rad2Deg(InputVector.Angle());
-			float lowerBoundDegreeSlope = slvecangle - 90.0F;
-			GD.Print(lowerBoundDegreeSlope);
-			float upperBoundDegreeSlope = slvecangle + 90.0F;
-			GD.Print(upperBoundDegreeSlope);
-			if ((inputVecAngle > lowerBoundDegreeSlope) && (inputVecAngle < upperBoundDegreeSlope)){
-				InputVector.x *= -1;
-				InputVector.y *= -1;
-				RotatePlayer(InputVector.Angle() + Mathf.Deg2Rad(-90.0F), InteractCast);
-				GD.Print(Mathf.Rad2Deg(InputVector.Angle()));
+			InputVector = Vector2.Zero;
+
+			GD.Print(SlopeDirType);
+			switch (SlopeDirType){
+				case SlopeType.SOUTH:
+					if(Input.IsActionPressed("ui_left")){
+						ChangeState(States.BOARD);
+						InputVector.x -= 1.0F;
+					}
+					if(Input.IsActionPressed("ui_right")){
+						ChangeState(States.BOARD);			
+						InputVector.x -= -1.0F;
+					}
+					InputVector.y = 1.0F;
+					break;
+				case SlopeType.WEST:
+					if(Input.IsActionPressed("ui_left")){
+						ChangeState(States.BOARD);
+						InputVector.y -= -1.0F;
+					}
+					if(Input.IsActionPressed("ui_right")){
+						ChangeState(States.BOARD);			
+						InputVector.y -= 1.0F;
+					}
+					if(Input.IsActionPressed("ui_up")){
+						ChangeState(States.BOARD);
+						InputVector.y -= -1.0F;
+					}
+					if(Input.IsActionPressed("ui_down")){
+						ChangeState(States.BOARD);			
+						InputVector.y -= 1.0F;
+					}
+					InputVector.x = -1.0F;
+					break;	
+				case SlopeType.NORTH:
+					if(Input.IsActionPressed("ui_left")){
+						ChangeState(States.BOARD);
+						InputVector.x -= 1.0F;
+					}
+					if(Input.IsActionPressed("ui_right")){
+						ChangeState(States.BOARD);			
+						InputVector.x -= -1.0F;
+					}
+					InputVector.y = -1.0F;
+					break;
+				case SlopeType.EAST:
+					if(Input.IsActionPressed("ui_left")){
+						ChangeState(States.BOARD);
+						InputVector.y -= -1.0F;
+					}
+					if(Input.IsActionPressed("ui_right")){
+						ChangeState(States.BOARD);			
+						InputVector.y -= 1.0F;
+					}
+					if(Input.IsActionPressed("ui_up")){
+						ChangeState(States.BOARD);
+						InputVector.y -= 1.0F;
+					}
+					if(Input.IsActionPressed("ui_down")){
+						ChangeState(States.BOARD);			
+						InputVector.y -= -1.0F;
+					}
+					InputVector.x = 1.0F;
+					break;	
 			}
-			else {
-				RotatePlayer(InputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), InteractCast);
-				GD.Print(Mathf.Rad2Deg(InputVector.Angle()) +" a");
-			}
+			GD.Print(InputVector);
+			InputVector = InputVector.Normalized();
+			RotatePlayer(InputVector.Angle() + Godot.Mathf.Deg2Rad(-90.0F), InteractCast);
 			MovementVector = MovementVector.MoveToward(InputVector * MaxSpeedOnBoard, AccelerationMultiplier * delta);
 			MoveAndSlide(MovementVector);
-		}
-		
-		
-
-		private void RollPlayer(){
-			//GD.Print("aa");
-			Tween physicsTween = GetNode<Tween>("PhysicsTween");
-
-			float xDir = 0.0F;
-			float yDir = 0.0F;
-
-			if(Input.IsActionPressed("ui_up")){
-				yDir -= 1.0F;
-			}
-
-			if(Input.IsActionPressed("ui_down")){
-				yDir -= -1.0F;
-			}
-
-			if(Input.IsActionPressed("ui_left")){
-				xDir -= 1.0F;
-			}
-
-			if(Input.IsActionPressed("ui_right")){
-				xDir -= -1.0F;
-			}
-			
-			
-
-			Vector2 initialVector = new Vector2(xDir * 50,yDir * 50);
-			MovementVector = Vector2.Zero;
-			physicsTween.InterpolateMethod(this, "move_and_slide", initialVector, initialVector, RollDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
-			if (!physicsTween.IsActive()){
-				//GD.Print("start");
-				physicsTween.Start();
-			}
-			//MoveAndSlide(initialVector);
-			ChangeState(States.IDLE);
-			//GD.Print(currentState);
 		}
 
 		public override void _Input(InputEvent inputEvent){
 			// We cant use `switch` here because `IsActionPressed` returns a bool and there is no other way (except doing all input key filtering yourself)
 			// that lets us use `switch` statements. 
-			if(inputEvent.IsActionPressed("ui_jump") && (new [] {States.IDLE, States.IDLE_LONG, States.MOVE, States.BOARD}.Contains(currentState))){
+			if(inputEvent.IsActionPressed("ui_jump") && (ValidMoveStates.Contains(currentState))){ // CHANGED - Dont allow the player to jump while boarding
 				ChangeState(States.JUMP);
 			}
 			// Elifs because we want these to be mutually exclusive
-			else if (inputEvent.IsActionPressed("ui_board") && (new [] {States.IDLE, States.IDLE_LONG, States.MOVE}.Contains(currentState)) && OnSlope){
+			else if (inputEvent.IsActionPressed("ui_board") && (ValidMoveStates.Contains(currentState)) && OnSlope){
 				ChangeState(States.BOARD);
 			}
-			else if (inputEvent.IsActionPressed("ui_attack") && (new [] {States.IDLE, States.IDLE_LONG, States.MOVE}.Contains(currentState))){
+			else if (inputEvent.IsActionPressed("ui_attack") && (ValidMoveStates.Contains(currentState))){
 				// TODO: Do hotbar check to call correct change state
 				//GD.Print("attacc");
 				//ChangeState(States.ATTACK_MAGE);
@@ -286,6 +296,15 @@ namespace rz_frzbn.Characters.player{
 						break;
 				}
 				
+			}
+
+			// Ive been trying for at least 3 days now to get rolling working. I give up, you win.
+			// HAHAHAAHAHAA FUCK YOU TWEENS I WIN INTO YOUR FUCKING TRASHCAN YOU GO LMAOOOOOOO I GOT ROLL WORKING YESYESYESYESYESYESYESYES
+			else if (inputEvent.IsActionPressed("ui_roll") && (ValidMoveStates.Contains(currentState)) && !OnSlope){
+				ChangeState(States.ROLL);
+				CurrentSpeed = 0;
+				MovementVector = Vector2.Zero;
+				RollPlayer();
 			}
 
 			// Check for UI inputs
@@ -341,17 +360,17 @@ namespace rz_frzbn.Characters.player{
 		}
 
 
-		public void _on_AnimationPlayer_animation_finished(string anim_name){
+		public override void _on_AnimationPlayer_animation_finished(string AnimName){
 			//GD.Print("here");
 			ChangeState(States.IDLE);
-			if (anim_name == "ATTACK"){
+			if (AnimName == "ATTACK"){
 				this.Rotation = PreviousAngleRadians;
 				CurrentAngle = PreviousAngleAngle;
 				InteractCast.RotationDegrees = ((float) CurrentAngle) * 45.0F + 180.0F;
 			}
 		}
 
-		new public void RotatePlayer(float radians, RayCast2D castRotater){
+		public override void RotatePlayer(float radians, RayCast2D castRotater){
 			//GD.Print(radians);
 			float degrees = (float) System.Math.Round(Godot.Mathf.Rad2Deg(radians), 1);
 			//GD.Print(degrees);
@@ -463,7 +482,7 @@ namespace rz_frzbn.Characters.player{
 							inst.Call("SetBullet", this.SpawnPos.GlobalPosition, this.InteractCast.Rotation);
 						}
 						else{
-							GD.Print("ERR Cannot isntance");
+							throw new InvalidOperationException("Could not instance attack type!");
 						}
 					
 						break;
@@ -476,7 +495,7 @@ namespace rz_frzbn.Characters.player{
 							inst.Call("SetSheild", this.SpawnPos.GlobalPosition, this.InteractCast.Rotation);
 						}
 						else{
-							GD.Print("ERR Cannot isntance");
+							throw new InvalidOperationException("Could not instance attack type!");
 						}
 
 						//animationPlayer.Play("ATTACK");
@@ -490,7 +509,7 @@ namespace rz_frzbn.Characters.player{
 							inst.Call("SetBullet", this.SpawnPos.GlobalPosition, this.InteractCast.Rotation);
 						}
 						else{
-							GD.Print("ERR Cannot isntance");
+							throw new InvalidOperationException("Could not instance attack type!");
 						}
 
 						break;
@@ -501,6 +520,56 @@ namespace rz_frzbn.Characters.player{
 						//animationPlayer.Play("ATTACK"); //TODO: Remove this
 						break;
 				}
+			}
+		}
+		private void RollPlayer(){
+			//GD.Print("aa");
+			Tween physicsTween = GetNode<Tween>("PhysicsTween");
+
+			float xDir = 0.0F;
+			float yDir = 0.0F;
+
+			if(Input.IsActionPressed("ui_up")){
+				yDir -= 1.0F;
+			}
+
+			if(Input.IsActionPressed("ui_down")){
+				yDir -= -1.0F;
+			}
+
+			if(Input.IsActionPressed("ui_left")){
+				xDir -= 1.0F;
+			}
+
+			if(Input.IsActionPressed("ui_right")){
+				xDir -= -1.0F;
+			}
+			
+			
+
+			Vector2 initialVector = new Vector2(xDir * 50,yDir * 50);
+			MovementVector = Vector2.Zero;
+			physicsTween.InterpolateMethod(this, "move_and_slide", initialVector, initialVector, RollDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
+			if (!physicsTween.IsActive()){
+				//GD.Print("start");
+				physicsTween.Start();
+			}
+			//MoveAndSlide(initialVector);
+			ChangeState(States.IDLE);
+			//GD.Print(currentState);
+		}
+
+		public void AddCoins(int amt){
+			this.Coins += amt;
+		}
+
+		public bool RemoveCoins(int amt){
+			if ((this.Coins - amt) < 0){
+				return false;
+			}
+			else {
+				this.Coins -= amt;
+				return true;
 			}
 		}
 	}

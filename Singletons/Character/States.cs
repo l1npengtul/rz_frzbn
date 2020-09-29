@@ -11,8 +11,8 @@ namespace rz_frzbn.Singletons.Character.states{
             ATTACK_SHIELD,
             ATTACK_RANGED,
             ATTACK_MELEE,
-            //TALK,
-            //TALK_SHOP,
+            TALK,
+            TALK_SHOP,
             DYING,
             DEAD,
         }
