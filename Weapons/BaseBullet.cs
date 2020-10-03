@@ -74,9 +74,11 @@ namespace rz_frzbn.Weapons.basebullet{
         public void _on_BaseBullet_body_entered(Godot.Node body){
             HasHit = true;
             // TODO: Sound effect
-            if(body.HasMethod("TakeDamage")){
-                // this.audio.Play("HitBody:);
+            if (body.HasMethod("TakeDamage") && body != this){
                 body.Call("TakeDamage", (float)this.BulletDamage);
+            }
+            else if (body.HasMethod("TakeDamageWithKB") && body != this){
+                body.Call("TakeDamageWithKB", (float)this.BulletDamage, this.GlobalPosition);
             }
             this.sprite.Play("BREAK");
         }

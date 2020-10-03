@@ -52,8 +52,13 @@ namespace rz_frzbn.Weapons.Mage.shelid{
         public void _on_Area2D_body_entered(Godot.Node body){
             if(body.HasMethod("TakeDamage") && body != this){ // Check if the body we are colliding into is not ourselves
                     // do math angle shit
-                body.Call("TakeKnockback", this.SheildHealthPoints);
-                body.Call("TakeDamage", this.SheildHealthPoints);
+                
+                if (body.HasMethod("TakeDamageWithKB")){
+                    body.Call("TakeDamageWithKB", this.SheildHealthPoints, this.GlobalPosition);
+                }
+                else {
+                    body.Call("TakeDamage", this.SheildHealthPoints);
+                }
                 this.TakeDamage(this.SheildHealthPoints);
             }
         }

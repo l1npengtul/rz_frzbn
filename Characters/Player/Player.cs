@@ -20,9 +20,6 @@ using rz_frzbn.Environment.Mountains.Slope;
 
 namespace rz_frzbn.Characters.player{
 	public class Player : BaseCharacter {
-		private new float HealthPoints = 100;
-		private new float ManaPoints = 200;
-
 		// All variables related to movement
 		private new Vector2 InputVector = new Vector2(0.0F, 0.0F);
 		private Vector2 RawInputVector = new Vector2(0.0F,0.0F);
@@ -60,6 +57,11 @@ namespace rz_frzbn.Characters.player{
 			Tween = GetNode<Tween>("Tween");
 			SpawnPos = GetNode<Position2D>("InteractCast/Spawn");
 			//
+			MaxManaPoints = 200.0F;
+			MaxHealthPoints = 100.0F;
+			HealthPoints = 100.0F;
+			ManaPoints = 200.0F;
+			CurrentItem = HotbarItems.ICEBOLT;
 			EmitSignal(nameof(HPChangedSignal), 10.0F);
 		}
 
@@ -224,11 +226,11 @@ namespace rz_frzbn.Characters.player{
 					}
 					if(Input.IsActionPressed("ui_up")){
 						ChangeState(States.BOARD);
-						InputVector.y -= -1.0F;
+						InputVector.y -= 1.0F;
 					}
 					if(Input.IsActionPressed("ui_down")){
 						ChangeState(States.BOARD);			
-						InputVector.y -= 1.0F;
+						InputVector.y -= -1.0F;
 					}
 					InputVector.x = -1.0F;
 					break;	
@@ -289,10 +291,14 @@ namespace rz_frzbn.Characters.player{
 					case HotbarItems.NONE:
 						break;
 					case HotbarItems.ICEBOLT:
-						ChangeState(States.ATTACK_MAGE);
+						if (UseMana(10.0F)){
+							ChangeState(States.ATTACK_MAGE);
+						}
 						break;
 					case HotbarItems.SHIELD:
-						ChangeState(States.ATTACK_SHIELD);
+						if (UseMana(40.0F)){
+							ChangeState(States.ATTACK_SHEILD);
+						}						
 						break;
 				}
 				
@@ -325,15 +331,31 @@ namespace rz_frzbn.Characters.player{
 
 		public override void _PhysicsProcess(float delta){
 			// TODO:just put board off anim in ToIdle state machine condition
-			if (!OnSlope){
+			if (CanMove){
+				if (!OnSlope){
 				GetMovementInput(delta);
+				}
+				else if(OnBoard){
+					GetMovementOnBoard(delta);
+				}
+				else{
+					GetMovementOnSlope(delta);
+				}
 			}
-			else if(OnBoard){
-				GetMovementOnBoard(delta);
+			
+			if (FSinceLastAtk >= long.MaxValue){
+				FSinceLastAtk = 0;
 			}
-			else{
-				GetMovementOnSlope(delta);
+			else {
+				FSinceLastAtk++;
 			}
+			if (FSinceLastHit >= long.MaxValue){
+				FSinceLastHit = 0;
+			}
+			else {
+				FSinceLastHit++;
+			}
+			DoRegeneration(delta);
 		}
 
 		// Signals
@@ -475,11 +497,11 @@ namespace rz_frzbn.Characters.player{
 				switch(attackType){
 					case AttackType.MAGE_ICEBOLT:
 						AnimationPlayer.Play("ATTACK");
-						//animationPlayer.Play("CAST");
 						if (IceBolt.CanInstance()){
 							var inst = IceBolt.Instance();
 							Owner.AddChild(inst);
 							inst.Call("SetBullet", this.SpawnPos.GlobalPosition, this.InteractCast.Rotation);
+							this.FSinceLastAtk = 0;
 						}
 						else{
 							throw new InvalidOperationException("Could not instance attack type!");
@@ -488,33 +510,31 @@ namespace rz_frzbn.Characters.player{
 						break;
 					case AttackType.MAGE_SHIELD:
 						AnimationPlayer.Play("ATTACK");
-
 						if (Sheild.CanInstance()){
 							var inst = Sheild.Instance();
 							Owner.AddChild(inst);
 							inst.Call("SetSheild", this.SpawnPos.GlobalPosition, this.InteractCast.Rotation);
+							this.FSinceLastAtk = 0;
 						}
 						else{
 							throw new InvalidOperationException("Could not instance attack type!");
 						}
-
-						//animationPlayer.Play("ATTACK");
 						break;
 					case AttackType.RANGED_CROSSBOW:
 						AnimationPlayer.Play("ATTACK");
-
 						if (Arrow.CanInstance()){
 							var inst = Arrow.Instance();
 							Owner.AddChild(inst);
 							inst.Call("SetBullet", this.SpawnPos.GlobalPosition, this.InteractCast.Rotation);
+							this.FSinceLastAtk = 0;
 						}
 						else{
 							throw new InvalidOperationException("Could not instance attack type!");
 						}
-
 						break;
 					case AttackType.MELEE_KICK:
 						AnimationPlayer.Play("ATTACK");
+						this.FSinceLastAtk = 0;
 						break;
 					default:
 						//animationPlayer.Play("ATTACK"); //TODO: Remove this
@@ -525,6 +545,7 @@ namespace rz_frzbn.Characters.player{
 		private void RollPlayer(){
 			//GD.Print("aa");
 			Tween physicsTween = GetNode<Tween>("PhysicsTween");
+			ChangeState(States.ROLL);
 
 			float xDir = 0.0F;
 			float yDir = 0.0F;
@@ -545,9 +566,9 @@ namespace rz_frzbn.Characters.player{
 				xDir -= -1.0F;
 			}
 			
-			
-
-			Vector2 initialVector = new Vector2(xDir * 50,yDir * 50);
+			GD.Print("a");
+			Vector2 initialVector = new Vector2(xDir * RollSpeed,yDir * RollSpeed);
+			GD.Print(initialVector);
 			MovementVector = Vector2.Zero;
 			physicsTween.InterpolateMethod(this, "move_and_slide", initialVector, initialVector, RollDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
 			if (!physicsTween.IsActive()){

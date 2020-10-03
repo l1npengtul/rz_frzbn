@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://icon.png" type="Texture" id=1]
 [ext_resource path="res://Characters/Player/GUI/HUD.cs" type="Script" id=2]
+[ext_resource path="res://Singletons/HUD/ICONS/HEART/heart_icon_empty.png" type="Texture" id=3]
+[ext_resource path="res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_empty.png" type="Texture" id=4]
 
 [node name="HUD" type="MarginContainer"]
 margin_right = 1920.0
@@ -27,70 +28,173 @@ size_flags_vertical = 3
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer2/VBoxContainer"]
 margin_right = 1920.0
-margin_bottom = 50.0
+margin_bottom = 68.0
 
 [node name="Bars" type="VBoxContainer" parent="VBoxContainer2/VBoxContainer/HBoxContainer2"]
 margin_right = 958.0
-margin_bottom = 50.0
+margin_bottom = 68.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="HP" type="Label" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars"]
-margin_right = 958.0
-margin_bottom = 14.0
-text = "HP:"
-
-[node name="MANA" type="Label" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars"]
-margin_top = 18.0
+[node name="HP" type="HBoxContainer" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars"]
 margin_right = 958.0
 margin_bottom = 32.0
-text = "Mana:"
 
-[node name="WEAPON" type="Label" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars"]
+[node name="HEART1" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_right = 32.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART2" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 36.0
+margin_right = 68.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART3" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 72.0
+margin_right = 104.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART4" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 108.0
+margin_right = 140.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART5" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 144.0
+margin_right = 176.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART6" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 180.0
+margin_right = 212.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART7" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 216.0
+margin_right = 248.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART8" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 252.0
+margin_right = 284.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART9" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 288.0
+margin_right = 320.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="HEART10" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP"]
+margin_left = 324.0
+margin_right = 356.0
+margin_bottom = 32.0
+texture = ExtResource( 3 )
+
+[node name="MANA" type="HBoxContainer" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars"]
 margin_top = 36.0
 margin_right = 958.0
-margin_bottom = 50.0
-text = "Current Weapon: "
+margin_bottom = 68.0
+
+[node name="MANACRYSTAL1" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_right = 32.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL2" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 36.0
+margin_right = 68.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL3" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 72.0
+margin_right = 104.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL4" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 108.0
+margin_right = 140.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL5" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 144.0
+margin_right = 176.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL6" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 180.0
+margin_right = 212.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL7" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 216.0
+margin_right = 248.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL8" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 252.0
+margin_right = 284.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL9" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 288.0
+margin_right = 320.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
+
+[node name="MANACRYSTAL10" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA"]
+margin_left = 324.0
+margin_right = 356.0
+margin_bottom = 32.0
+texture = ExtResource( 4 )
 
 [node name="Counters" type="HBoxContainer" parent="VBoxContainer2/VBoxContainer/HBoxContainer2"]
 margin_left = 962.0
 margin_right = 1920.0
-margin_bottom = 50.0
+margin_bottom = 68.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 alignment = 2
 
 [node name="CRYSTALS" type="Label" parent="VBoxContainer2/VBoxContainer/HBoxContainer2/Counters"]
 margin_left = 909.0
-margin_top = 9.0
+margin_top = 18.0
 margin_right = 958.0
-margin_bottom = 40.0
+margin_bottom = 49.0
 text = "crystals
 "
 align = 2
 valign = 1
 
 [node name="HOTBAR" type="HBoxContainer" parent="VBoxContainer2/VBoxContainer"]
-margin_top = 54.0
+margin_top = 72.0
 margin_right = 1920.0
-margin_bottom = 118.0
+margin_bottom = 72.0
 
 [node name="ICO1" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HOTBAR"]
-modulate = Color( 0, 0.0392157, 1, 1 )
-margin_right = 64.0
-margin_bottom = 64.0
-texture = ExtResource( 1 )
+stretch_mode = 2
 
 [node name="ICO2" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HOTBAR"]
-modulate = Color( 0, 1, 0.203922, 1 )
-margin_left = 68.0
-margin_right = 132.0
-margin_bottom = 64.0
-texture = ExtResource( 1 )
+margin_left = 4.0
+margin_right = 4.0
+stretch_mode = 1
 
 [node name="ICO3" type="TextureRect" parent="VBoxContainer2/VBoxContainer/HOTBAR"]
-modulate = Color( 1, 0, 0, 1 )
-margin_left = 136.0
-margin_right = 200.0
-margin_bottom = 64.0
-texture = ExtResource( 1 )
+margin_left = 8.0
+margin_right = 8.0
+stretch_mode = 1

@@ -8,7 +8,7 @@ namespace rz_frzbn.Singletons.Character.states{
 			ROLL,
             STAGGER,
             ATTACK_MAGE,
-            ATTACK_SHIELD,
+            ATTACK_SHEILD,
             ATTACK_RANGED,
             ATTACK_MELEE,
             TALK,

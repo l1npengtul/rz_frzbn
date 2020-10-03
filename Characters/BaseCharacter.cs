@@ -40,14 +40,14 @@ namespace rz_frzbn.Characters.basecharacter{
         protected PackedScene Arrow = ResourceLoader.Load<PackedScene>("res://Weapons/Arch/Arrow/Arrow.tscn");
 
         // Hotbar
-        protected HotbarItems CurrentItem = HotbarItems.NONE;
+        protected virtual HotbarItems CurrentItem {get;set;}
         
         // Movement Related
         protected Vector2 MovementVector = new Vector2(0.0F,0.0F);
         protected Vector2 InputVector = new Vector2(0.0F,0.0F);
         protected const float FrictionMultiplier = 7000.0F;
         protected const float AccelerationMultiplier = 7000.0F;
-        protected const float RollDuration = 0.25F;
+        protected const float RollDuration = 0.4F;
         protected float WalkSpeedMultiplier = 1.0F;
         protected float RunSpeedMultiplier = 1.6F;
         protected float SlopeModifierX = 0.0F;
@@ -60,9 +60,9 @@ namespace rz_frzbn.Characters.basecharacter{
         protected const int MaxSpeedOnSlope = 900;
         protected const int MaxSpeedOnSlopeWhileRunning = 1100;
         protected const int MaxSpeedOnBoard = 1400;
-        protected const int RollSpeed = 650;
+        protected const int RollSpeed = 950;
         protected const int KnockBackMultiplier = 1000;
-        protected const float KnockBackDuration = 0.15F;
+        protected const float KnockBackDuration = 0.1F;
         protected bool IsBeingDamaged = false;
         protected float AttackCooldown = 0.15F;
         protected float DamageCooldown = 0.15F;
@@ -80,21 +80,38 @@ namespace rz_frzbn.Characters.basecharacter{
         // FSM State Modifiers
         protected bool OnSlope = false;
         protected bool OnBoard = false;
+        protected bool CanMove = true;
         
 
         // HP and Fighting
+        
+        protected virtual float HealthPoints {
+            get; set;
+        }
+        
+        protected virtual float ManaPoints {
+            get; set;
+        }
         [Export]
-        protected float HealthPoints = 100.0F;
+        protected int ArrowAmount = 20;
         [Export]
-        protected float ManaPoints = 100.0F;
+        protected int SecondsUntilRegenStart = 5;
         [Export]
-        protected float MaxHealthPoints = 100.0F;
+        protected int HealPerSecond = 2;
         [Export]
-        protected float MaxManaPoints = 100.0F;
+        protected int ManaPerSecond = 10; 
+        protected virtual float MaxHealthPoints {
+            get; set;
+        }
+        protected virtual float MaxManaPoints {
+            get; set;
+        }
         [Export]
         protected float BaseMeleeDamage = 10.0F;
         [Export] 
         protected float Strength = 1.0F;
+        protected long FSinceLastAtk = 0;
+        protected long FSinceLastHit = 0;
 
         // Stringbuilder to avoid new allocations when concatenating strings for animations
         protected StringBuilder NewAnim = new StringBuilder("", 50);
@@ -119,28 +136,31 @@ namespace rz_frzbn.Characters.basecharacter{
             //GD.Print(currentState.ToString());
 			// Check for any current states
 			switch (currentState){
-				case States.DEAD:
-					QueueFree();
-					break;
 				// Note: This is done so that melee has to finish and you cant move while attacking melee.
 				case States.ATTACK_MELEE:
-					SetPhysicsProcess(true);
+                    CanMove = true;
 					break;
 				case States.ATTACK_MAGE:
-					SetPhysicsProcess(true);
+                    CanMove = true;
 					break;
-                case States.ATTACK_SHIELD:
-					SetPhysicsProcess(true);
-					break;
+                case States.ATTACK_RANGED:
+                    CanMove = true;
+                    break;
+                case States.ATTACK_SHEILD:
+                    CanMove = true;
+                    break;
 				case States.ROLL:
-					SetPhysicsProcess(true);
+                    CanMove = true;
 					break;
 				case States.MOVE:
 					OnBoard = false;
 					break;
                 case States.STAGGER:
-                    SetPhysicsProcess(true);
+                    CanMove = true;
                     this.IsBeingDamaged = false;
+                    break;
+                case States.DYING:
+                    QueueFree();
                     break;
 			}
 
@@ -149,50 +169,54 @@ namespace rz_frzbn.Characters.basecharacter{
 				case States.IDLE:
 					//aniPlayer.Play("IDLE");
                     SetPhysicsProcess(true);
+                    CanMove = true;
 					break;
 				case States.IDLE_LONG:
 					// TODO: Make More Idle Long Anims if possible
 					//aniPlayer.Play("IDLE_LONG");
                     SetPhysicsProcess(true);
+                    CanMove = true;
 					break;
 				case States.MOVE:
 					//aniPlayer.Play("RUN");
 					break;
-				/* TODO: Implement Jump 
-				case States.JUMP:
-					aniPlayer.Play("RUN");
-					break;
-					*/
 				case States.ROLL:
 					SetPhysicsProcess(false);
 					//aniPlayer.Play("ROLL");
 					break;
-				case States.JUMP:
-					// TODO: Implement jump (Y movement UP, reduced air control by set margain)
-					//aniPlayer.Play("IDLE");
-					break;
 				case States.STAGGER: // State for STUN/KNOCKBACK
 					this.IsBeingDamaged = true;
-                    this.SetPhysicsProcess(false);
-                    this.PlayAnimation("STAGGER", this.CurrentAngle);
+                    CanMove = false;
+                    AnimationPlayer.Play("STAGGER");
 					break;
 				case States.ATTACK_MAGE:
 					// So here is the thing:
 					// Emilia's sprite is broken up into many parts, allowing us to "blend" animations
 					// Emilia will play the attack mage
 					//aniPlayer.Play("IDLE");
-					SetPhysicsProcess(false);
+					CanMove = false;
 					this.Attack(AttackType.MAGE_ICEBOLT);
 					break;
-                case States.ATTACK_SHIELD:
-					SetPhysicsProcess(false);
+                case States.ATTACK_MELEE:
+					CanMove = false;
 					this.Attack(AttackType.MAGE_SHIELD);
 					break;
+                case States.ATTACK_RANGED:
+					CanMove = false;
+					this.Attack(AttackType.MAGE_SHIELD);
+					break;
+                case States.ATTACK_SHEILD:
+                    CanMove = false;
+                    this.Attack(AttackType.MAGE_SHIELD);
+                    break;
 				case States.BOARD:
 					OnBoard = true;
 					GD.Print("slope true");
 					break;
-				// Skipping all other states until movement and roll works properly. 
+				case States.DYING:
+                    //AnimationPlayer.Play("DIE");
+                    AnimationPlayer.Play("IDLE");
+                    break;
 				default:
 					//aniPlayer.Play("IDLE");
 					break;
@@ -280,6 +304,7 @@ namespace rz_frzbn.Characters.basecharacter{
         public void Roll(){
             
         }
+
         protected void PlayAnimation(string animationName, Angles Angles){
             NewAnim.Insert(0, animationName);
             
@@ -321,8 +346,9 @@ namespace rz_frzbn.Characters.basecharacter{
                 }
                 EmitSignal("HPChangedSignal", this.HealthPoints);
             }
+            this.FSinceLastHit = 0;
         }
-        public void TakeDamageWithKB(float damage){
+        public void TakeDamageWithKB(float damage, Vector2 damageLocation){
             // TODO: Take into account damage vulnarabilities
             if (!this.IsBeingDamaged){
                 this.HealthPoints += damage * -1;
@@ -331,12 +357,14 @@ namespace rz_frzbn.Characters.basecharacter{
                 }
                 else {
                     ChangeState(States.STAGGER);
-                    this.TakeKnockback(damage*64.0F);
+                    float HitAngle = this.GlobalPosition.AngleTo(damageLocation);
+                    this.TakeKnockback(damage*64.0F, HitAngle);
                 }
                 EmitSignal("HPChangedSignal", this.HealthPoints);
             }
+            this.FSinceLastHit = 0;
         }
-        public void TakeDamageWithStun(float damage){
+        public void TakeDamageWithStun(float damage, Vector2 damageLocation){
             // TODO: Take into account damage vulnarabilities
             if (!this.IsBeingDamaged){
                 this.HealthPoints += damage * -1;
@@ -346,10 +374,10 @@ namespace rz_frzbn.Characters.basecharacter{
                 else {
                     ChangeState(States.STAGGER);
                     this.Stun(damage*64.0F);
-                    DamageTimer.Start();
                 }
                 EmitSignal("HPChangedSignal", this.HealthPoints);
             }
+            this.FSinceLastHit = 0;
         }
 
         public void HealDamage(float heal){
@@ -358,6 +386,40 @@ namespace rz_frzbn.Characters.basecharacter{
                 this.HealthPoints = this.MaxHealthPoints;
             }
             EmitSignal("HPChangedSignal", this.HealthPoints);
+        }
+
+        protected virtual float CalculateHeals(long FramesSinceDamage, float delta){
+            //GD.Print((FramesSinceDamage/(1/delta)));
+            if ((FramesSinceDamage/(1/delta)) > 5){
+                float Calced = HealPerSecond * Mathf.Log(FramesSinceDamage/(0.1F/delta)) / (MaxHealthPoints*2);
+                if (Calced < 0){
+                    Calced = 0.0F;
+                }
+                else if (Calced > HealPerSecond + 0.5F){
+                    Calced = HealPerSecond + 0.5F;
+                }
+                return Calced;
+            }
+            return 0.0F;
+        }
+
+        protected virtual float CalculateManaRegen(long FramesSinceLastAttack, float delta){
+            if ((FramesSinceLastAttack/(1/delta)) > 5){
+                float Calced = ManaPerSecond * Mathf.Log(FramesSinceLastAttack/(0.1F/delta)) / (MaxManaPoints*2);
+                if (Calced < 0){
+                    Calced = 0.0F;
+                }
+                else if (Calced > ManaPerSecond + 0.5F){
+                    Calced = ManaPerSecond + 0.5F;
+                }
+                return Calced;
+            }
+            return 0.0F;
+        }
+
+        protected virtual void DoRegeneration(float delta){
+            HealDamage(CalculateHeals(FSinceLastHit, delta));
+            RegenMana(CalculateManaRegen(FSinceLastAtk, delta));
         }
 
         public bool UseMana(float mana){
@@ -372,6 +434,14 @@ namespace rz_frzbn.Characters.basecharacter{
             }
         }
 
+        public bool UseArrow(int arrows){
+            if ((ArrowAmount - arrows) >= 0){
+                ArrowAmount -= arrows;
+                return true;
+            }
+            return false;
+        }
+        
         public void RegenMana(float mana){
             this.ManaPoints += mana;
             if (this.ManaPoints > MaxManaPoints){
@@ -384,12 +454,19 @@ namespace rz_frzbn.Characters.basecharacter{
             // Do Nothing! Let each class that inherits `override` and define their own behaviour!
         }
 
-        protected void TakeKnockback(float mag){
-            float angleToKB = this.MovementVector.Angle() + Mathf.Deg2Rad(180) + Godot.Mathf.Deg2Rad(-90.0F);
+        // hypixel players be like: "what if i didnt?"
+        protected void TakeKnockback(float mag, float angle){
+            float angleToKB = angle + Mathf.Deg2Rad(180) + Godot.Mathf.Deg2Rad(-90.0F);
+            GD.Print(angleToKB);
             Vector2 kbVector = new Vector2(Mathf.Sin(angleToKB), Mathf.Cos(angleToKB));
-            kbVector.x *= mag;
-            kbVector.y *= mag;
-            PhysicsTween.InterpolateMethod(this, nameof(MoveAndSlide), kbVector, kbVector, KnockBackDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
+            kbVector.x *= mag/3;
+            kbVector.y *= mag/3; 
+            GD.Print(kbVector);
+            PhysicsTween.InterpolateMethod(this, "move_and_slide", kbVector, kbVector, KnockBackDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
+            if (!PhysicsTween.IsActive()){
+                PhysicsTween.Start();
+            }
+            ChangeState(States.IDLE);
         }
 
         protected void Stun(float duration){
@@ -435,6 +512,7 @@ namespace rz_frzbn.Characters.basecharacter{
             else{
                 this.CurrentItem = to;
             }
+            EmitSignal(nameof(WeaponChangedSignal), this.CurrentItem);
         }
 
         // This function expects to be called every frame.
