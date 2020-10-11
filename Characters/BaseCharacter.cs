@@ -459,8 +459,8 @@ namespace rz_frzbn.Characters.basecharacter{
             float angleToKB = angle + Mathf.Deg2Rad(180) + Godot.Mathf.Deg2Rad(-90.0F);
             GD.Print(angleToKB);
             Vector2 kbVector = new Vector2(Mathf.Sin(angleToKB), Mathf.Cos(angleToKB));
-            kbVector.x *= mag/3;
-            kbVector.y *= mag/3; 
+            kbVector.x *= mag;
+            kbVector.y *= mag; 
             GD.Print(kbVector);
             PhysicsTween.InterpolateMethod(this, "move_and_slide", kbVector, kbVector, KnockBackDuration, Tween.TransitionType.Bounce, Tween.EaseType.OutIn);
             if (!PhysicsTween.IsActive()){
@@ -612,6 +612,14 @@ namespace rz_frzbn.Characters.basecharacter{
                     break;
             }
 		}
+
+        public void SavePlayerState(){
+
+        }
+
+        public void LoadPlayerState(){
+            
+        }
 
     }
 }

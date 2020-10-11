@@ -4,7 +4,7 @@ using System;
 
 public class HUD : MarginContainer {
     private TextureRect[] HP = new TextureRect[10];
-    private TextureRect[] Mana = new TextureRect[10];
+    private TextureRect[] Mana = new TextureRect[10]; 
     private TextureRect ItemIcon1;
     private TextureRect ItemIcon2;
     private TextureRect ItemIcon3;
@@ -34,31 +34,37 @@ public class HUD : MarginContainer {
             Mana[i] = GetNode<TextureRect>("VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA/MANACRYSTAL"+(i+1));
         }
 
-        HeartEmpty = GD.Load<Texture>("res://Singletons/HUD/ICONS/HEART/heart_icon_empty-64.png");
-        HeartHalf = GD.Load<Texture>("res://Singletons/HUD/ICONS/HEART/heart_icon_half-64.png");
-        HeartFull = GD.Load<Texture>("res://Singletons/HUD/ICONS/HEART/heart_icon_full-64.png");
+        //GetNode<HBoxContainer>("VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/HP").RectScale = new Vector2(0.5F,0.5F);
+        //GetNode<HBoxContainer>("VBoxContainer2/VBoxContainer/HBoxContainer2/Bars/MANA").RectScale = new Vector2(0.5F,0.5F);
+        //GetNode<HBoxContainer>("VBoxContainer2/VBoxContainer/HBoxContainer2").RectScale = new Vector2(0.5F,0.5F);
 
+
+        HeartEmpty = GD.Load<Texture>("res://Singletons/HUD/ICONS/HEART/heart_icon_empty.png");
+        HeartHalf = GD.Load<Texture>("res://Singletons/HUD/ICONS/HEART/heart_icon_half.png");
+        HeartFull = GD.Load<Texture>("res://Singletons/HUD/ICONS/HEART/heart_icon_full.png");
+
+        
         //HeartEmpty.Flags = 0;
         //HeartHalf.Flags = 0;
         //HeartFull.Flags = 0;
 
-        ManaEmpty = GD.Load<Texture>("res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_empty-64.png");
-        ManaHalf = GD.Load<Texture>("res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_half-64.png");
-        ManaFull = GD.Load<Texture>("res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_full-64.png");
+        ManaEmpty = GD.Load<Texture>("res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_empty.png");
+        ManaHalf = GD.Load<Texture>("res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_half.png");
+        ManaFull = GD.Load<Texture>("res://Singletons/HUD/ICONS/MANA_CRYSTAL/mana_crystal_full.png");
 
         //ManaEmpty.Flags = 0;
         //ManaHalf.Flags = 0;
         //.Flags = 0;
 
-        Crossbow = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/CROSSBOW/crossbow-64.png");
-        Icebolt = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/ICEBOLT/icebolt-64.png");
-        Sheild = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/sheild/sheild-64.png");
-        None = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/NONE/none-64.png");
+        Crossbow = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/CROSSBOW/crossbow.png");
+        Icebolt = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/ICEBOLT/icebolt.png");
+        Sheild = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/sheild/sheild.png");
+        None = GD.Load<Texture>("res://Singletons/HUD/ICONS/ITEMS/NONE/none.png");
 
         //Crossbow.Flags = 0;
         //Icebolt.Flags = 0;
         //Sheild.Flags = 0;
-        //None.Flags = 0;
+        //.Flags = 0;
 
         ItemIcon1 = GetNode<TextureRect>("VBoxContainer2/VBoxContainer/HOTBAR/ICO1");
         ItemIcon2 = GetNode<TextureRect>("VBoxContainer2/VBoxContainer/HOTBAR/ICO2");
@@ -76,6 +82,7 @@ public class HUD : MarginContainer {
             int HalfHearts = (int)((NewHP*2)/10);
             int a = 0;
             while (a < 10) {
+                //HP[a].RectScale = new Vector2(0.5F,0.5F);
                 if (HalfHearts >= 2){
                     HP[a].Texture = HeartFull;
                     HalfHearts -= 2;
@@ -92,6 +99,7 @@ public class HUD : MarginContainer {
         }
         else {
             foreach (TextureRect heart in HP){
+                //heart.RectScale = new Vector2(0.5F,0.5F);
                 heart.Texture = HeartEmpty;
             }
         }
@@ -109,6 +117,7 @@ public class HUD : MarginContainer {
             int HalfManas = (int)((NewMana)/10);
             int a = 0;
             while (a < 10) {
+                //Mana[a].RectScale = new Vector2(0.5F,0.5F);
                 if (HalfManas >= 2){
                     Mana[a].Texture = ManaFull;
                     HalfManas -= 2;
@@ -125,6 +134,7 @@ public class HUD : MarginContainer {
         }
         else {
             foreach (TextureRect mana in Mana){
+                //mana.RectScale = new Vector2(0.5F,0.5F);
                 mana.Texture = ManaEmpty;
             }
         }
