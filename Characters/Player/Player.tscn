@@ -44,6 +44,7 @@ anims/STAGGER = SubResource( 4 )
 [connection signal="AmmoChangedSignal" from="." to="Camera/HUD" method="_on_Player_AmmoChangedSignal"]
 [connection signal="HPChangedSignal" from="." to="Camera/HUD" method="_on_Player_HPChangedSignal"]
 [connection signal="MPChangedSignal" from="." to="Camera/HUD" method="_on_Player_MPChangedSignal"]
+[connection signal="StateChangedSignal" from="." to="Camera/HUD" method="_on_Player_StateChangedSignal"]
 [connection signal="WeaponChangedSignal" from="." to="Camera/HUD" method="_on_Player_WeaponChangedSignal"]
 [connection signal="tween_completed" from="Tween" to="." method="_on_Tween_tween_completed"]
 [connection signal="tween_completed" from="PhysicsTween" to="." method="_on_PhysicsTween_tween_completed"]

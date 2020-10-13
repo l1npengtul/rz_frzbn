@@ -478,18 +478,23 @@ namespace rz_frzbn.Characters.basecharacter{
             switch(ent){
                 case EntityType.EnemyMage:
                     this.AddToGroup("Enemy");
+                    this.AddToGroup("Persist");
                     break;
                 case EntityType.EnemyMelee:
                     this.AddToGroup("Enemy");
+                    this.AddToGroup("Persist");
                     break;
                 case EntityType.Passive:
                     this.AddToGroup("Passive");
+                    this.AddToGroup("Persist");
                     break;
                 case EntityType.Player:
                     this.AddToGroup("Player");
+                    this.AddToGroup("Persist");
                     break;
                 case EntityType.NPC:
                     this.AddToGroup("NPC");
+                    this.AddToGroup("Persist");
                     break;
                 default:
                     throw new InvalidOperationException("EntityType is not defined");
@@ -614,7 +619,7 @@ namespace rz_frzbn.Characters.basecharacter{
 		}
 
         public void SavePlayerState(){
-
+            
         }
 
         public void LoadPlayerState(){
