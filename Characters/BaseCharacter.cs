@@ -616,14 +616,13 @@ namespace rz_frzbn.Characters.basecharacter{
                     ChangeState(States.IDLE);
                     break;
             }
-		}
+        }   
 
-        public void SavePlayerState(){
-            
-        }
+        public virtual Godot.Collections.Dictionary<String, object> SaveData(){
+            return new Godot.Collections.Dictionary(){
+                {"Filename", },
 
-        public void LoadPlayerState(){
-            
+            };
         }
 
     }
